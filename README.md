@@ -1,36 +1,185 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KEDA Shop - Интернет-магазин обуви
 
-## Getting Started
+Современный интернет-магазин обуви, разработанный с использованием Next.js, Prisma, PostgreSQL и TypeScript.
 
-First, run the development server:
+## Основные функции
+
+- 👟 Каталог товаров с фильтрацией по категориям (Men, Women, Kids) и брендам
+- 🔍 Поиск товаров по названию
+- 🛒 Корзина с возможностью изменения количества и размера
+- 💳 Оформление заказа
+- 👤 Личный кабинет пользователя с историей заказов
+- 👑 Панель управления для администраторов
+- 📱 Адаптивный дизайн для всех устройств
+
+## Технологический стек
+
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Framer Motion
+- **Backend**: Next.js API Routes
+- **Database**: PostgreSQL
+- **ORM**: Prisma
+- **Authentication**: JWT, bcrypt
+- **UI компоненты**: React Hook Form, Lucide Icons
+
+## Запуск проекта
+
+### Предварительные требования
+
+- Node.js (версия 18 или выше)
+- PostgreSQL (локально или в облаке)
+
+### Установка
+
+1. Клонируйте репозиторий:
+
+```bash
+git clone https://github.com/yourusername/keda-shop.git
+cd keda-shop
+```
+
+2. Установите зависимости:
+
+```bash
+npm install
+```
+
+3. Создайте файл `.env.local` в корне проекта и добавьте необходимые переменные окружения:
+
+```
+DATABASE_URL="postgresql://username:password@localhost:5432/keda_shop"
+NEXTAUTH_SECRET="your-secret-key"
+NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+```
+
+4. Настройте базу данных:
+
+```bash
+npx prisma migrate dev
+```
+
+5. Заполните базу данных тестовыми данными:
+
+```bash
+npx ts-node -P tsconfig.node.json prisma/seed.ts
+```
+
+6. Запустите проект в режиме разработки:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+7. Откройте [http://localhost:3000](http://localhost:3000) в браузере.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Структура проекта
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+keda-shop/
+├── app/                    # Next.js App Router
+│   ├── admin/              # Панель администратора
+│   ├── api/                # API endpoints
+│   ├── auth/               # Авторизация
+│   ├── cart/               # Корзина
+│   ├── checkout/           # Оформление заказа
+│   ├── components/         # React компоненты
+│   ├── orders/             # Заказы пользователя
+│   ├── products/           # Страницы товаров
+│   ├── profile/            # Личный кабинет пользователя
+│   └── ...
+├── lib/                    # Утилиты и хелперы
+├── prisma/                 # Prisma схема и миграции
+│   ├── schema.prisma       # Модель данных
+│   └── seed.ts             # Скрипт для заполнения БД
+├── public/                 # Статические файлы
+│   └── products/           # Изображения продуктов
+└── ...
+```
 
-## Learn More
+## Учетные записи для тестирования
 
-To learn more about Next.js, take a look at the following resources:
+### Администратор
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Email: admin@example.com
+- Пароль: admin
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Пользователь
 
-## Deploy on Vercel
+- Email: user@example.com
+- Пароль: user
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Основные страницы
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Главная** - `/` - Промо-разделы и популярные категории
+- **Каталог** - `/products` - Список товаров с фильтрами
+- **Карточка товара** - `/products/[id]` - Детальная информация о товаре
+- **Корзина** - `/cart` - Просмотр и управление товарами в корзине
+- **Оформление заказа** - `/checkout` - Завершение покупки
+- **Заказы** - `/orders` - История заказов пользователя
+- **Профиль** - `/profile` - Управление личными данными
+- **Авторизация** - `/auth/signin` - Вход в систему
+- **Регистрация** - `/auth/signup` - Создание нового аккаунта
+
+## Панель администратора
+
+- **Главная** - `/admin` - Статистика и обзор
+- **Товары** - `/admin/products` - Управление товарами
+- **Категории** - `/admin/categories` - Управление категориями
+- **Бренды** - `/admin/brands` - Управление брендами
+- **Заказы** - `/admin/orders` - Управление заказами
+- **Пользователи** - `/admin/users` - Управление пользователями
+
+## Дополнительная информация
+
+### Размеры кроссовок
+
+В проекте используются европейские размеры обуви:
+
+- Мужские: 40-47
+- Женские: 35-42
+- Детские: 28-35
+
+### Статусы заказов
+
+- `PENDING` - Ожидает обработки
+- `PROCESSING` - В обработке
+- `SHIPPED` - Отправлен
+- `DELIVERED` - Доставлен
+- `CANCELLED` - Отменен
+
+## Разработка
+
+### Запуск тестов
+
+```bash
+npm test
+```
+
+### Создание новых компонентов
+
+```bash
+npm run generate component MyComponent
+```
+
+### Работа с Prisma
+
+Просмотр данных в БД:
+
+```bash
+npx prisma studio
+```
+
+Обновление клиента после изменения схемы:
+
+```bash
+npx prisma generate
+```
+
+Создание миграции:
+
+```bash
+npx prisma migrate dev --name add_new_feature
+```
+
+## Лицензия
+
+MIT

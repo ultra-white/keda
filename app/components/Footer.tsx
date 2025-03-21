@@ -11,8 +11,14 @@ export default function Footer() {
 				<div className='flex justify-between flex-col md:flex-row gap-12'>
 					{/* Логотип */}
 					<div className='md:block flex justify-center'>
-						<Link href='/' className='block mb-6'>
-							<Image src='/logo-white.svg' alt='logo' width={250} height={60} />
+						<Link href='/' className='text-2xl font-bold'>
+							<Image
+								src='/logo-white.svg'
+								alt='logo'
+								width={100}
+								height={40}
+								style={{ width: "auto", height: "auto" }}
+							/>
 						</Link>
 					</div>
 					<div className='grid grid-cols-2 lg:grid-cols-4 gap-12 items-start justify-between'>
