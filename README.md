@@ -1,6 +1,6 @@
 # KEDA - Интернет-магазин обуви
 
-Современный интернет-магазин обуви, разработанный с использованием Next.js, Prisma, PostgreSQL и TypeScript.
+Современный интернет-магазин обуви, разработанный с использованием Next.js, Prisma, SQLite/PostgreSQL и TypeScript.
 
 ## Основные функции
 
@@ -16,17 +16,17 @@
 
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Framer Motion
 - **Backend**: Next.js API Routes
-- **Database**: PostgreSQL
+- **Database**: SQLite (по умолчанию) или PostgreSQL
 - **ORM**: Prisma
-- **Authentication**: JWT, bcrypt
-- **UI компоненты**: React Hook Form, Lucide Icons
+- **Authentication**: NextAuth.js, bcrypt
+- **UI компоненты**: Lucide Icons, React Spinners
 
 ## Запуск проекта
 
 ### Предварительные требования
 
 - Node.js (версия 18 или выше)
-- PostgreSQL (локально или в облаке)
+- Для работы с PostgreSQL: PostgreSQL (локально или в облаке)
 
 ### Установка
 
@@ -43,24 +43,37 @@ cd keda-shop
 npm install
 ```
 
-3. Создайте файл `.env.local` в корне проекта и добавьте необходимые переменные окружения:
+3. Скопируйте файл `.env.example` в `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Файл `.env.example` содержит следующие переменные окружения:
 
 ```
-DATABASE_URL="postgresql://username:password@localhost:5432/keda_shop"
+# SQLite
+DATABASE_URL="file:./keda_db.db"
+
+# PostgreSQL (Change provider in prisma/schema.prisma)
+# DATABASE_URL="postgresql://postgres:admin@localhost:5432/keda_db"
+
 NEXTAUTH_SECRET="your-secret-key"
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+NEXTAUTH_URL="http://localhost:3000"
 ```
+
+Для использования PostgreSQL вместо SQLite раскомментируйте строку с PostgreSQL URL и внесите изменения в `prisma/schema.prisma`, изменив провайдер на "postgresql".
 
 4. Настройте базу данных:
 
 ```bash
-npx prisma migrate dev
+npx prisma migrate dev --name init
 ```
 
-5. Заполните базу данных тестовыми данными:
+5. Генерация клиента Prisma:
 
 ```bash
-npx ts-node -P tsconfig.node.json prisma/seed.ts
+npx prisma generate
 ```
 
 6. Запустите проект в режиме разработки:
@@ -70,6 +83,14 @@ npm run dev
 ```
 
 7. Откройте [http://localhost:3000](http://localhost:3000) в браузере.
+
+### Заполнение базы данных (опционально)
+
+Если вы хотите заполнить базу данных тестовыми данными:
+
+```bash
+npx ts-node -P tsconfig.node.json prisma/seed.ts
+```
 
 ## Структура проекта
 
@@ -154,12 +175,6 @@ keda-shop/
 npm test
 ```
 
-### Создание новых компонентов
-
-```bash
-npm run generate component MyComponent
-```
-
 ### Работа с Prisma
 
 Просмотр данных в БД:
@@ -178,6 +193,16 @@ npx prisma generate
 
 ```bash
 npx prisma migrate dev --name add_new_feature
+```
+
+## Решение проблем
+
+### Ошибки в migrrations
+
+Если у вас возникли проблемы с миграциями, попробуйте удалить папку `prisma/migrations` и файл базы данных `*.db`, а затем запустить миграцию заново:
+
+```bash
+npx prisma migrate dev --name init
 ```
 
 ## Лицензия
