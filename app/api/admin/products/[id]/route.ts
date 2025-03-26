@@ -171,12 +171,71 @@ export async function DELETE(req: NextRequest, context: { params: { id: string }
 		const id = context.params.id;
 		const product = await prisma.product.findUnique({
 			where: { id },
+			include: {
+				cartItems: true,
+				orderItems: true,
+				reviews: true,
+			},
 		});
 
 		if (!product) {
 			return NextResponse.json({ error: "Товар не найден" }, { status: 404 });
 		}
 
+		// Удаление связанных данных перед удалением товара
+		// 1. Удаление элементов корзины
+		if (product.cartItems.length > 0) {
+			await prisma.cartItem.deleteMany({
+				where: { productId: id },
+			});
+		}
+
+		// 2. Проверяем наличие элементов заказа
+		if (product.orderItems.length > 0) {
+			// Не удаляем товар, если он есть в завершенных заказах
+			const ordersWithProduct = await prisma.order.findMany({
+				where: {
+					items: {
+						some: {
+							productId: id,
+						},
+					},
+					status: {
+						in: ["COMPLETED", "DELIVERED", "SHIPPED"],
+					},
+				},
+			});
+
+			if (ordersWithProduct.length > 0) {
+				return NextResponse.json(
+					{
+						error: "Невозможно удалить товар, так как он используется в завершенных заказах",
+					},
+					{ status: 400 }
+				);
+			}
+
+			// Удаляем товар из незавершенных заказов
+			await prisma.orderItem.deleteMany({
+				where: {
+					productId: id,
+					order: {
+						status: {
+							in: ["PROCESSING", "CONFIRMED", "CANCELLED"],
+						},
+					},
+				},
+			});
+		}
+
+		// 3. Удаление отзывов
+		if (product.reviews.length > 0) {
+			await prisma.review.deleteMany({
+				where: { productId: id },
+			});
+		}
+
+		// Наконец, удаляем сам товар
 		await prisma.product.delete({
 			where: { id },
 		});

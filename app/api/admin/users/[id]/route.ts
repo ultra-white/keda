@@ -151,14 +151,71 @@ export async function DELETE(request: NextRequest, context: { params: { id: stri
 			return NextResponse.json({ error: "Доступ запрещен" }, { status: 403 });
 		}
 
-		const userId = context.params.id;
+		const { id: userId } = context.params;
 
 		// Защита от удаления своего аккаунта
 		if (session?.user?.id === userId) {
 			return NextResponse.json({ error: "Нельзя удалить свой аккаунт" }, { status: 400 });
 		}
 
-		// Удаление пользователя
+		// Проверка существования пользователя
+		const userExists = await prisma.user.findUnique({
+			where: { id: userId },
+			include: {
+				cart: {
+					include: {
+						items: true,
+					},
+				},
+				orders: {
+					include: {
+						items: true,
+					},
+				},
+				reviews: true,
+			},
+		});
+
+		if (!userExists) {
+			return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+		}
+
+		// Удаление связанных записей перед удалением пользователя
+		// Удаляем отзывы пользователя
+		if (userExists.reviews.length > 0) {
+			await prisma.review.deleteMany({
+				where: { userId },
+			});
+		}
+
+		// Удаляем элементы корзины и саму корзину
+		if (userExists.cart) {
+			if (userExists.cart.items.length > 0) {
+				await prisma.cartItem.deleteMany({
+					where: { cartId: userExists.cart.id },
+				});
+			}
+			await prisma.cart.delete({
+				where: { userId },
+			});
+		}
+
+		// Обработка заказов
+		if (userExists.orders.length > 0) {
+			// Для каждого заказа удаляем его элементы
+			for (const order of userExists.orders) {
+				await prisma.orderItem.deleteMany({
+					where: { orderId: order.id },
+				});
+			}
+
+			// Затем удаляем сами заказы
+			await prisma.order.deleteMany({
+				where: { userId },
+			});
+		}
+
+		// Теперь можно безопасно удалить пользователя
 		await prisma.user.delete({
 			where: { id: userId },
 		});

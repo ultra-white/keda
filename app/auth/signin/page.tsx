@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Button from "@/app/components/shared/Button";
 import Input from "@/app/components/shared/Input";
+import React from "react";
 
 export default function SignInPage({
 	searchParams = {},
@@ -16,8 +17,9 @@ export default function SignInPage({
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 
-	// Если есть redirect параметр, его нужно сохранить
-	const redirectPath = typeof searchParams.redirect === "string" ? searchParams.redirect : "/profile";
+	// Используем React.use() для работы с searchParams
+	const params = React.use(searchParams);
+	const redirectPath = typeof params.redirect === "string" ? params.redirect : "/profile";
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();

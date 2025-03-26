@@ -99,9 +99,9 @@ const ProfilePage = memo(function ProfilePage() {
 	return (
 		<div className='container mx-auto px-[25px] lg:px-[50px] py-12'>
 			{/* Заголовок и кнопки */}
-			<div className='flex justify-between items-center mb-8'>
+			<div className='flex justify-between w-full items-center mb-8'>
 				<h1 className='text-3xl font-bold'>Мой профиль</h1>
-				<div className='flex space-x-4'>
+				<div className='flex md:space-x-4 flex-col md:flex-row md:w-auto w-min'>
 					{isAdmin && (
 						<Link href='/admin' className='flex items-center text-black hover:text-gray-700 focus:outline-none'>
 							<ShieldCheck className='h-5 w-5 mr-2' />

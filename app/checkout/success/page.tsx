@@ -2,13 +2,15 @@ import Link from "next/link";
 import { CheckCircle, Package, Home, ArrowRight, ShoppingBag } from "lucide-react";
 import Button from "@/app/components/shared/Button";
 import { redirect } from "next/navigation";
+import React from "react";
 
 export default function CheckoutSuccessPage({
 	searchParams,
 }: {
 	searchParams: { [key: string]: string | string[] | undefined };
 }) {
-	// Получаем ID заказа из параметров URL на сервере
+	// В текущей версии Next.js параметры URL через searchParams доступны напрямую
+	// В будущих версиях Next.js может потребоваться использовать React.use(searchParams)
 	const orderId = typeof searchParams.orderId === "string" ? searchParams.orderId : null;
 
 	// Если нет ID заказа, перенаправляем на главную

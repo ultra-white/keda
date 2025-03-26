@@ -31,7 +31,7 @@ export default function BrandsList({ brands }: BrandsListProps) {
 					onHoverEnd={() => setHoveredIndex(null)}
 				>
 					<Link
-						href={`/search?brand=${encodeURIComponent(brand.name)}`}
+						href={`/products?brand=${encodeURIComponent(brand.name)}`}
 						className='block w-full h-full flex items-center justify-center p-4'
 					>
 						<motion.div

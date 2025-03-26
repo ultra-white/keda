@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow, format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ArrowLeft, Package, CheckCircle, XCircle, Clock, Truck, AlertTriangle } from "lucide-react";
+import React from "react";
 
 interface OrderItem {
 	id: string;
@@ -70,7 +71,7 @@ const getStatusName = (status: string) => {
 	}
 };
 
-export default function OrderDetailsPage({ params }: { params: { id: string } }) {
+export default function OrderDetailsPage() {
 	const [order, setOrder] = useState<Order | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
@@ -78,9 +79,10 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
 	const [confirmCancelModal, setConfirmCancelModal] = useState<boolean>(false);
 	const [cancelError, setCancelError] = useState<string | null>(null);
 	const router = useRouter();
+	const params = useParams();
 
-	// Получаем id напрямую из params
-	const { id } = params;
+	// Получаем id из хука useParams
+	const id = params.id as string;
 
 	useEffect(() => {
 		async function fetchOrderDetails() {

@@ -48,9 +48,14 @@ export default function AdminNavigation() {
 	const pathname = usePathname();
 
 	// Определяем текущий активный раздел
-	const activeSection = adminSections.find(
-		(section) => pathname === section.path || pathname.startsWith(`${section.path}/`)
-	);
+	const activeSection = adminSections.find((section) => {
+		if (section.id === "dashboard") {
+			// Для панели управления - активна только если путь точно совпадает
+			return pathname === section.path;
+		}
+		// Для других разделов - если путь совпадает или начинается с него
+		return pathname === section.path || pathname.startsWith(`${section.path}/`);
+	});
 
 	// Формируем хлебные крошки
 	const breadcrumbs = [{ title: "Панель управления", path: "/admin" }];
@@ -70,7 +75,15 @@ export default function AdminNavigation() {
 					<div className='flex'>
 						<div className='hidden sm:ml-6 sm:flex sm:space-x-4'>
 							{adminSections.map((section) => {
-								const isActive = pathname === section.path || pathname.startsWith(`${section.path}/`);
+								// Корректируем логику проверки активного раздела
+								let isActive;
+								if (section.id === "dashboard") {
+									// Для панели управления - активна только если путь точно совпадает
+									isActive = pathname === section.path;
+								} else {
+									// Для других разделов - если путь совпадает или начинается с него
+									isActive = pathname === section.path || pathname.startsWith(`${section.path}/`);
+								}
 
 								return (
 									<Link
@@ -95,7 +108,13 @@ export default function AdminNavigation() {
 				<div className='sm:hidden py-2'>
 					<div className='px-2 pt-2 pb-3 space-y-1'>
 						{adminSections.map((section) => {
-							const isActive = pathname === section.path || pathname.startsWith(`${section.path}/`);
+							// Применяем ту же логику для мобильного меню
+							let isActive;
+							if (section.id === "dashboard") {
+								isActive = pathname === section.path;
+							} else {
+								isActive = pathname === section.path || pathname.startsWith(`${section.path}/`);
+							}
 
 							return (
 								<Link

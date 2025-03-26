@@ -148,7 +148,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
 
 									<Link
 										href={`/products/${product.id}`}
-										className='inline-block bg-black text-white font-semibold px-6 py-3 rounded-md hover:bg-gray-800 transition-colors'
+										className='inline-block bg-black text-white font-semibold px-6 py-3 mb-3 rounded-md hover:bg-gray-800 transition-colors'
 									>
 										Подробнее
 									</Link>
@@ -162,18 +162,18 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
 			{/* Стрелки навигации */}
 			<button
 				onClick={goToPrev}
-				className='absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 p-2 rounded-full shadow-md transition-all z-10'
+				className='absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 opacity-70 p-2 rounded-full cursor-pointer shadow-md transition-all z-10'
 				aria-label='Предыдущий слайд'
 			>
-				<ChevronLeft className='h-6 w-6' />
+				<ChevronLeft className='h-6 w-6 text-black' />
 			</button>
 
 			<button
 				onClick={goToNext}
-				className='absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 p-2 rounded-full shadow-md transition-all z-10'
+				className='absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 opacity-70 p-2 rounded-full cursor-pointer shadow-md transition-all z-10'
 				aria-label='Следующий слайд'
 			>
-				<ChevronRight className='h-6 w-6' />
+				<ChevronRight className='h-6 w-6 text-black' />
 			</button>
 
 			{/* Точки индикатора */}

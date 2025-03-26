@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default function OrdersPage() {
 	return (
-		<div className='container mx-auto px-[25px] lg:px-[50px] py-12 mt-16'>
+		<div className='container mx-auto px-[25px] lg:px-[50px] py-12 mt-12'>
 			<div className='mb-4'>
 				<Link href='/profile' className='inline-flex items-center text-black mb-0 hover:text-gray-700 hover:underline'>
 					<ArrowLeft className='h-4 w-4 mr-2' />
