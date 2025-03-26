@@ -26,7 +26,7 @@ export default function CartItem({ product, quantity }: CartItemProps) {
 			}
 			new URL(urlString);
 			return true;
-		} catch (e) {
+		} catch {
 			return false;
 		}
 	};

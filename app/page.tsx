@@ -23,6 +23,7 @@ async function getProducts() {
 		const products = await prisma.product.findMany({
 			include: {
 				category: true,
+				brand: true,
 			},
 			orderBy: { createdAt: "desc" },
 			take: 12, // Ограничим количество товаров на главной странице
@@ -62,6 +63,7 @@ async function getFeaturedProducts() {
 			},
 			include: {
 				category: true,
+				brand: true,
 			},
 			orderBy: { createdAt: "desc" },
 			take: 5, // Ограничим количество товаров для карусели

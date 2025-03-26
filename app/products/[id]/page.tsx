@@ -38,7 +38,6 @@ async function getProduct(id: string): Promise<Product | null> {
 			where: { id },
 			include: {
 				category: true,
-				// @ts-expect-error - brand не определен в типах Prisma по умолчанию
 				brand: true,
 			},
 		});
@@ -71,7 +70,6 @@ async function getSimilarProducts(categoryId: string, currentProductId: string):
 			},
 			include: {
 				category: true,
-				// @ts-expect-error - brand не определен в типах Prisma по умолчанию
 				brand: true,
 			},
 			take: 4, // Ограничиваем количество похожих товаров

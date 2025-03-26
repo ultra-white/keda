@@ -101,18 +101,22 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
 				}}
 			>
 				<div className='flex h-full' style={{ width: `${products.length * 100}%` }}>
-					{products.map((product, index) => (
+					{products.map((product) => (
 						<div key={product.id} className='h-full bg-gray-100' style={{ width: `${100 / products.length}%` }}>
 							<div className='h-full flex flex-col md:flex-row'>
 								{/* Изображение */}
 								<div className='flex-1 overflow-hidden flex items-center justify-center bg-white relative'>
 									{product.image && isValidUrl(product.image) && !imageErrors[product.id] ? (
-										<img
-											src={product.image}
-											alt={product.model}
-											className='w-full h-full object-contain hover:scale-105 transition-transform'
-											onError={() => setImageErrors((prev) => ({ ...prev, [product.id]: true }))}
-										/>
+										<div className='relative w-full h-full'>
+											<Image
+												src={product.image}
+												alt={product.model}
+												fill
+												sizes='(max-width: 768px) 100vw, 50vw'
+												className='object-contain hover:scale-105 transition-transform'
+												onError={() => setImageErrors((prev) => ({ ...prev, [product.id]: true }))}
+											/>
+										</div>
 									) : (
 										<div className='w-full h-full bg-gray-200 flex items-center justify-center'>
 											<span className='text-gray-400 font-medium'>Нет изображения</span>

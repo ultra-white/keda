@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { formatDistanceToNow, format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ArrowLeft, Package, CheckCircle, XCircle, Clock, Truck, AlertTriangle } from "lucide-react";
@@ -78,9 +79,8 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
 	const [cancelError, setCancelError] = useState<string | null>(null);
 	const router = useRouter();
 
-	// Используем React.use() для получения асинхронных параметров
-	const resolvedParams = use(params);
-	const { id } = resolvedParams;
+	// Получаем id напрямую из params
+	const { id } = params;
 
 	useEffect(() => {
 		async function fetchOrderDetails() {
@@ -208,7 +208,13 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
 									{/* Изображение товара */}
 									<div className='w-16 h-16 bg-gray-100 flex items-center justify-center rounded-md mr-4 flex-shrink-0'>
 										{item.product.image ? (
-											<img src={item.product.image} alt={item.product.model} className='w-14 h-14 object-contain' />
+											<Image
+												src={item.product.image}
+												alt={item.product.model}
+												width={56}
+												height={56}
+												className='object-contain'
+											/>
 										) : (
 											<Package className='h-6 w-6 text-gray-400' />
 										)}

@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // GET - получение корзины пользователя
-export async function GET(req: Request) {
+export async function GET() {
 	try {
 		const session = await auth();
 
@@ -61,7 +61,7 @@ export async function GET(req: Request) {
 }
 
 // POST - обновление корзины пользователя
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
 	try {
 		const session = await auth();
 
@@ -84,26 +84,48 @@ export async function POST(req: Request) {
 			},
 		});
 
-		if (!user) {
-			return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
-		}
+		let cartId: string | undefined = undefined;
 
-		// Если у пользователя еще нет корзины, создаем ее
-		let cartId = user.cart?.id;
-		if (!cartId) {
-			const newCart = await prisma.cart.create({
-				data: {
-					userId: user.id,
-				},
-			});
-			cartId = newCart.id;
+		if (!user) {
+			try {
+				// Создаем нового пользователя
+				const newUser = await prisma.user.create({
+					data: {
+						email: session.user.email!,
+						name: session.user.name || "Пользователь",
+					},
+				});
+
+				// Создаем новую корзину для пользователя
+				const newCart = await prisma.cart.create({
+					data: {
+						userId: newUser.id,
+					},
+				});
+
+				cartId = newCart.id;
+			} catch (error) {
+				console.error("Ошибка при создании пользователя:", error);
+				return NextResponse.json({ error: "Ошибка при создании пользователя" }, { status: 500 });
+			}
 		} else {
-			// Удаляем все существующие товары в корзине
-			await prisma.cartItem.deleteMany({
-				where: {
-					cartId: cartId,
-				},
-			});
+			// Если у пользователя еще нет корзины, создаем ее
+			cartId = user.cart?.id;
+			if (!cartId) {
+				const newCart = await prisma.cart.create({
+					data: {
+						userId: user.id,
+					},
+				});
+				cartId = newCart.id;
+			} else {
+				// Удаляем все существующие товары в корзине
+				await prisma.cartItem.deleteMany({
+					where: {
+						cartId: cartId,
+					},
+				});
+			}
 		}
 
 		// Добавляем новые товары в корзину

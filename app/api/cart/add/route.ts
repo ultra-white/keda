@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // POST - добавление товара в корзину
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
 	try {
 		const session = await auth();
 
@@ -31,7 +31,37 @@ export async function POST(req: Request) {
 		});
 
 		if (!user) {
-			return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+			try {
+				// Создаем нового пользователя
+				const newUser = await prisma.user.create({
+					data: {
+						email: session.user.email!,
+						name: session.user.name || "Пользователь",
+					},
+				});
+
+				// Создаем новую корзину для пользователя
+				const newCart = await prisma.cart.create({
+					data: {
+						userId: newUser.id,
+					},
+				});
+
+				// Добавляем товар в новую корзину
+				await prisma.cartItem.create({
+					data: {
+						productId: productId,
+						quantity: quantity,
+						cartId: newCart.id,
+						...(selectedSize ? { size: String(selectedSize) } : {}),
+					},
+				});
+
+				return NextResponse.json({ success: true, message: "Товар успешно добавлен в корзину" });
+			} catch (error) {
+				console.error("Ошибка при создании пользователя:", error);
+				return NextResponse.json({ error: "Ошибка при создании пользователя" }, { status: 500 });
+			}
 		}
 
 		// Проверяем существование товара

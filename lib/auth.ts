@@ -6,6 +6,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export const authConfig = {
 	adapter: PrismaAdapter(prisma),
 	providers: [
@@ -15,14 +16,14 @@ export const authConfig = {
 				email: { label: "Email", type: "text" },
 				password: { label: "Password", type: "password" },
 			},
-			async authorize(credentials) {
+			async authorize(credentials, req) {
 				if (!credentials?.email || !credentials?.password) {
 					throw new Error("Необходимо указать email и пароль");
 				}
 
 				const user = await prisma.user.findUnique({
 					where: {
-						email: credentials.email,
+						email: credentials.email as string,
 					},
 					select: {
 						id: true,
@@ -37,7 +38,7 @@ export const authConfig = {
 					throw new Error("Пользователь не найден");
 				}
 
-				const passwordsMatch = await bcrypt.compare(credentials.password, user.password || "");
+				const passwordsMatch = await bcrypt.compare(credentials.password as string, user.password || "");
 
 				if (!passwordsMatch) {
 					throw new Error("Неверный пароль");

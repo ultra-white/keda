@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { Product } from "@/app/components/products/ProductCard";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
@@ -37,7 +37,7 @@ const isLocalStorageAvailable = () => {
 		localStorage.setItem(testKey, testKey);
 		localStorage.removeItem(testKey);
 		return true;
-	} catch (e) {
+	} catch {
 		return false;
 	}
 };
@@ -46,9 +46,56 @@ export function CartProvider({ children }: { children: ReactNode }) {
 	const [items, setItems] = useState<CartItem[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isCartLoaded, setIsCartLoaded] = useState(false); // Флаг для отслеживания загрузки корзины
-	const { data: session, status } = useSession();
+	const { status } = useSession();
 	const isAuthenticated = status === "authenticated";
 	const hasLocalStorage = isLocalStorageAvailable();
+
+	// Функция для синхронизации корзины с БД
+	const syncCartWithDb = useCallback(
+		async (cartItems: CartItem[]) => {
+			if (!isAuthenticated) return;
+
+			try {
+				console.log("Синхронизация корзины с сервером:", JSON.stringify(cartItems));
+				const response = await fetch("/api/cart", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ items: cartItems }),
+				});
+
+				if (!response.ok) {
+					const errorData = await response.json();
+					throw new Error(`Ошибка синхронизации: ${errorData.error || response.statusText}`);
+				}
+
+				const result = await response.json();
+				console.log("Результат синхронизации:", result);
+			} catch (error) {
+				console.error("Ошибка при синхронизации корзины с БД:", error);
+				// Показываем уведомление об ошибке
+				toast.error("Ошибка синхронизации корзины. Попробуйте перезагрузить страницу.");
+			}
+		},
+		[isAuthenticated]
+	);
+
+	// Функция для очистки корзины в БД
+	const clearDbCart = useCallback(async () => {
+		if (!isAuthenticated) return;
+
+		try {
+			await fetch("/api/cart/clear", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+		} catch (error) {
+			console.error("Ошибка при очистке корзины в БД:", error);
+		}
+	}, [isAuthenticated]);
 
 	// Загрузка корзины
 	useEffect(() => {
@@ -155,7 +202,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 		setTimeout(() => {
 			loadCart();
 		}, 100);
-	}, [isAuthenticated, isCartLoaded, hasLocalStorage]); // Добавляем hasLocalStorage в зависимости
+	}, [isAuthenticated, isCartLoaded, hasLocalStorage, syncCartWithDb]); // Добавляем syncCartWithDb в зависимости
 
 	// Сбрасываем флаг загрузки корзины при изменении статуса авторизации
 	useEffect(() => {
@@ -210,40 +257,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 		const timeoutId = setTimeout(handleCart, 300);
 
 		return () => clearTimeout(timeoutId);
-	}, [items, isAuthenticated, isCartLoaded, hasLocalStorage]);
-
-	// Функция для синхронизации корзины с БД
-	const syncCartWithDb = async (cartItems: CartItem[]) => {
-		if (!isAuthenticated) return;
-
-		try {
-			await fetch("/api/cart", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ items: cartItems }),
-			});
-		} catch (error) {
-			console.error("Ошибка при синхронизации корзины с БД:", error);
-		}
-	};
-
-	// Функция для очистки корзины в БД
-	const clearDbCart = async () => {
-		if (!isAuthenticated) return;
-
-		try {
-			await fetch("/api/cart/clear", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			});
-		} catch (error) {
-			console.error("Ошибка при очистке корзины в БД:", error);
-		}
-	};
+	}, [items, isAuthenticated, isCartLoaded, hasLocalStorage, clearDbCart, syncCartWithDb]);
 
 	// Добавление товара в корзину
 	const addItem = async (product: Product) => {

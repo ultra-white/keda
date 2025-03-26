@@ -29,9 +29,6 @@ export default function Header() {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
-	// Проверка роли пользователя
-	const isAdmin = session?.user?.role === "ADMIN";
-
 	// Получаем список категорий при загрузке компонента
 	useEffect(() => {
 		const fetchCategories = async () => {
@@ -147,24 +144,6 @@ export default function Header() {
 	const kidsCategory = categories.find(
 		(cat) => cat.slug === "detskie" || cat.slug === "kids" || cat.name.toLowerCase().includes("дет")
 	);
-
-	// Обработчик выхода из аккаунта
-	const handleSignOut = async () => {
-		try {
-			const response = await fetch("/api/auth/signout", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			});
-
-			if (response.ok) {
-				router.push("/auth/signin");
-			}
-		} catch (error) {
-			console.error("Ошибка при выходе из аккаунта:", error);
-		}
-	};
 
 	return (
 		<>

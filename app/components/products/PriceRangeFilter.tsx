@@ -49,28 +49,29 @@ export default function PriceRangeFilter({ minPossiblePrice = 0, maxPossiblePric
 
 	// Обновляем состояние при изменении URL (например, при сбросе фильтров)
 	useEffect(() => {
-		// Создаем переменную, указывающую, нужно ли обновлять состояние
-		let shouldUpdate = false;
-
 		// Проверяем изменения минимальной цены
 		const newMinPrice = urlMinPrice ? Number(urlMinPrice) : minPossiblePrice;
-		if (minPrice !== newMinPrice) {
-			shouldUpdate = true;
-		}
 
 		// Проверяем изменения максимальной цены
 		const newMaxPrice = urlMaxPrice ? Number(urlMaxPrice) : maxPossiblePrice;
-		if (maxPrice !== newMaxPrice) {
-			shouldUpdate = true;
-		}
 
-		// Если есть изменения, обновляем состояние
-		if (shouldUpdate) {
-			setMinPrice(newMinPrice);
-			setMaxPrice(newMaxPrice);
-			setDebouncedMinPrice(newMinPrice);
-			setDebouncedMaxPrice(newMaxPrice);
-		}
+		// Проверяем, нужно ли обновить состояние
+		// Используем функциональное обновление, чтобы избежать зависимости от текущих значений minPrice и maxPrice
+		setMinPrice((currentMin) => {
+			if (currentMin !== newMinPrice) {
+				setDebouncedMinPrice(newMinPrice);
+				return newMinPrice;
+			}
+			return currentMin;
+		});
+
+		setMaxPrice((currentMax) => {
+			if (currentMax !== newMaxPrice) {
+				setDebouncedMaxPrice(newMaxPrice);
+				return newMaxPrice;
+			}
+			return currentMax;
+		});
 	}, [urlMinPrice, urlMaxPrice, minPossiblePrice, maxPossiblePrice]);
 
 	// Функция для преобразования значения цены в позицию на слайдере (в процентах)

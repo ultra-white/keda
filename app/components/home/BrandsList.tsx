@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import Image from "next/image";
 
 interface Brand {
 	id: number;
@@ -39,10 +40,12 @@ export default function BrandsList({ brands }: BrandsListProps) {
 							transition={{ type: "spring", stiffness: 300 }}
 							className='w-full h-full relative'
 						>
-							<img
+							<Image
 								src={brand.logo}
 								alt={brand.name}
-								className='w-full h-full object-contain filter grayscale hover:grayscale-0 transition-all opacity-70 hover:opacity-100'
+								fill
+								sizes='(max-width: 768px) 96px, 128px'
+								className='object-contain filter grayscale hover:grayscale-0 transition-all opacity-70 hover:opacity-100'
 							/>
 						</motion.div>
 					</Link>

@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // Получение категории по ID
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
 	try {
 		const session = await auth();
 
@@ -20,7 +20,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 		}
 
 		const category = await prisma.category.findUnique({
-			where: { id: params.id },
+			where: { id: context.params.id },
 		});
 
 		if (!category) {
@@ -35,7 +35,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // Обновление категории
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
 	try {
 		const session = await auth();
 
@@ -58,7 +58,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 		}
 
 		// Проверка на существование категории
-		const id = params.id;
+		const id = context.params.id;
 		const category = await prisma.category.findUnique({
 			where: { id },
 		});
@@ -70,7 +70,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 		// Проверка на существование другой категории с таким же названием
 		const existingCategory = await prisma.category.findFirst({
 			where: {
-				name: { equals: name, mode: "insensitive" },
+				name: name,
 				id: { not: id },
 			},
 		});
@@ -95,7 +95,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // Удаление категории
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
 	try {
 		const session = await auth();
 
@@ -113,7 +113,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
 		// Проверка существования категории
 		const category = await prisma.category.findUnique({
-			where: { id: params.id },
+			where: { id: context.params.id },
 		});
 
 		if (!category) {
@@ -122,7 +122,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
 		// Проверка, есть ли товары в этой категории
 		const productsCount = await prisma.product.count({
-			where: { categoryId: params.id },
+			where: { categoryId: context.params.id },
 		});
 
 		if (productsCount > 0) {
@@ -135,7 +135,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 		}
 
 		await prisma.category.delete({
-			where: { id: params.id },
+			where: { id: context.params.id },
 		});
 
 		return NextResponse.json({ success: true });

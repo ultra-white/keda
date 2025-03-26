@@ -37,7 +37,6 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
 	const [imageError, setImageError] = useState(false);
-	const [isHovering, setIsHovering] = useState(false);
 
 	// Проверка является ли строка корректным URL
 	const isValidUrl = (urlString: string): boolean => {
@@ -65,11 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
 	return (
 		<Link href={`/products/${product.id}`}>
-			<div
-				className='bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow'
-				onMouseEnter={() => setIsHovering(true)}
-				onMouseLeave={() => setIsHovering(false)}
-			>
+			<div className='bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow'>
 				<div className='relative'>
 					{/* Изображение товара */}
 					<div className='relative w-full aspect-square overflow-hidden'>

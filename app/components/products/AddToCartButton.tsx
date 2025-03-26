@@ -21,7 +21,7 @@ export default function AddToCartButton({
 	size = "lg",
 	selectedSize = null,
 }: AddToCartButtonProps) {
-	const { addItem, removeItem } = useCart();
+	const { addItem } = useCart();
 	const [isAdding, setIsAdding] = useState(false);
 	const [isAdded, setIsAdded] = useState(false);
 

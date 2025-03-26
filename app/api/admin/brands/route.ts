@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -33,7 +33,7 @@ export async function GET() {
 }
 
 // Создание нового бренда
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
 	try {
 		const session = await auth();
 
@@ -57,7 +57,9 @@ export async function POST(req: Request) {
 
 		// Проверка на существование бренда с таким же названием
 		const existingBrand = await prisma.brand.findFirst({
-			where: { name: { equals: name, mode: "insensitive" } },
+			where: {
+				name: name,
+			},
 		});
 
 		if (existingBrand) {

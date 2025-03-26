@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // Удаление отдельного товара из заказа
-export async function DELETE(request: Request, { params }: { params: { id: string; itemId: string } }) {
+export async function DELETE(request: NextRequest, context: { params: { id: string; itemId: string } }) {
 	try {
 		// Получаем текущую сессию пользователя
 		const session = await auth();
@@ -22,8 +23,8 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 		}
 
 		// Получаем ID заказа и ID товара из параметров
-		const orderId = params.id;
-		const orderItemId = params.itemId;
+		const orderId = context.params.id;
+		const orderItemId = context.params.itemId;
 
 		// Получаем заказ
 		const order = await prisma.order.findUnique({

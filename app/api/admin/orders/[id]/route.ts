@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // Получение информации о конкретном заказе
-export async function GET(request: Request, context: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
 	try {
 		// Получаем текущую сессию пользователя
 		const session = await auth();
@@ -55,7 +55,7 @@ export async function GET(request: Request, context: { params: { id: string } })
 }
 
 // Обновление статуса заказа
-export async function PATCH(request: Request, context: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
 	try {
 		// Получаем текущую сессию пользователя
 		const session = await auth();
@@ -118,7 +118,7 @@ export async function PATCH(request: Request, context: { params: { id: string } 
 }
 
 // Удаление заказа
-export async function DELETE(request: Request, context: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
 	try {
 		// Получаем текущую сессию пользователя
 		const session = await auth();

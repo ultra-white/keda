@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ShoppingBag, ChevronRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Category {
 	id: string;
@@ -17,8 +17,6 @@ interface FeaturedCategoriesProps {
 }
 
 export default function FeaturedCategories({ categories }: FeaturedCategoriesProps) {
-	const router = useRouter();
-
 	// Определяем цвета для фоновых плиток
 	const bgColors = ["bg-gray-100", "bg-blue-50", "bg-amber-50", "bg-emerald-50", "bg-rose-50", "bg-purple-50"];
 
@@ -33,12 +31,6 @@ export default function FeaturedCategories({ categories }: FeaturedCategoriesPro
 		const params = new URLSearchParams();
 		params.set("category", categorySlug);
 		return `/products?${params.toString()}`;
-	};
-
-	// Обработчик клика по категории
-	const handleCategoryClick = (e: React.MouseEvent, categorySlug: string) => {
-		e.preventDefault();
-		router.push(getCategoryUrl(categorySlug));
 	};
 
 	return (
@@ -65,7 +57,9 @@ export default function FeaturedCategories({ categories }: FeaturedCategoriesPro
 							</div>
 							<div className='w-16 h-16 flex items-center justify-center'>
 								{category.image ? (
-									<img src={category.image} alt={category.name} className='w-full h-full object-contain' />
+									<div className='relative w-full h-full'>
+										<Image src={category.image} alt={category.name} fill sizes='64px' className='object-contain' />
+									</div>
 								) : (
 									defaultIcons[0]
 								)}

@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
 // GET /api/admin/users/[id] - получение пользователя по ID
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
 	try {
 		// Проверка прав администратора
 		const session = await auth();
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 			return NextResponse.json({ error: "Доступ запрещен" }, { status: 403 });
 		}
 
-		const userId = params.id;
+		const userId = context.params.id;
 
 		// Получение пользователя по ID
 		const user = await prisma.user.findUnique({
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/admin/users/[id] - обновление данных пользователя
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: { id: string } }) {
 	try {
 		// Проверка прав администратора
 		const session = await auth();
@@ -54,7 +55,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 			return NextResponse.json({ error: "Отсутствуют обязательные поля" }, { status: 400 });
 		}
 
-		const userId = params.id;
+		const userId = context.params.id;
 
 		// Проверка существования пользователя с таким ID
 		const existingUser = await prisma.user.findUnique({
@@ -106,7 +107,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // PATCH /api/admin/users/[id] - обновление статуса администратора
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
 	try {
 		// Проверка прав администратора
 		const session = await auth();
@@ -114,7 +115,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 			return NextResponse.json({ error: "Доступ запрещен" }, { status: 403 });
 		}
 
-		const userId = params.id;
+		const userId = context.params.id;
 		const data = await request.json();
 
 		// Защита от изменения собственного статуса администратора
@@ -142,7 +143,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // DELETE /api/admin/users/[id] - удаление пользователя
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
 	try {
 		// Проверка прав администратора
 		const session = await auth();
@@ -150,7 +151,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 			return NextResponse.json({ error: "Доступ запрещен" }, { status: 403 });
 		}
 
-		const userId = params.id;
+		const userId = context.params.id;
 
 		// Защита от удаления своего аккаунта
 		if (session?.user?.id === userId) {

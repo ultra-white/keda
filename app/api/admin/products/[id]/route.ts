@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // Получение товара по ID
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: { id: string } }) {
 	try {
 		const session = await auth();
 
@@ -19,7 +19,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 			return NextResponse.json({ error: "Недостаточно прав" }, { status: 403 });
 		}
 
-		const id = params.id;
+		const id = context.params.id;
 		const product = await prisma.product.findUnique({
 			where: { id },
 			include: {
@@ -40,7 +40,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // Обновление товара
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: { params: { id: string } }) {
 	try {
 		const session = await auth();
 
@@ -63,7 +63,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 		}
 
 		// Проверка существования товара
-		const id = params.id;
+		const id = context.params.id;
 		const product = await prisma.product.findUnique({
 			where: { id },
 			include: {
@@ -151,7 +151,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // Удаление товара
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
 	try {
 		const session = await auth();
 
@@ -168,7 +168,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 		}
 
 		// Проверка существования товара
-		const id = params.id;
+		const id = context.params.id;
 		const product = await prisma.product.findUnique({
 			where: { id },
 		});

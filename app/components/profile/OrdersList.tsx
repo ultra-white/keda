@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ArrowRight, Package, CheckCircle, Clock, XCircle, ShoppingBag, Truck } from "lucide-react";
@@ -163,7 +164,13 @@ export default function OrdersList({ limit }: OrdersListProps) {
 										<div className='flex items-center'>
 											<div className='w-10 h-10 bg-gray-100 rounded flex items-center justify-center mr-3'>
 												{item.product?.image ? (
-													<img src={item.product.image} alt={item.name} className='w-8 h-8 object-contain' />
+													<Image
+														src={item.product.image}
+														alt={`${item.product.brandName} ${item.product.model}`}
+														width={32}
+														height={32}
+														className='object-contain'
+													/>
 												) : (
 													<Package className='h-5 w-5 text-gray-400' />
 												)}

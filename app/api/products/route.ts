@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { fuzzyMatch } from "@/lib/utils";
 
 // Получение списка товаров для публичного доступа
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
 	const { searchParams } = new URL(req.url);
 	const categorySlug = searchParams.get("category");
 	const searchQuery = searchParams.get("search");

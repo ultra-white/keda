@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+type Context = {
+	params: {
+		id: string;
+	};
+};
+
 // Получение конкретного бренда
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: Context) {
 	try {
 		const session = await auth();
 
@@ -35,7 +42,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // Обновление бренда
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: Context) {
 	try {
 		const session = await auth();
 
@@ -79,7 +86,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 		// Проверка на существование другого бренда с таким же названием
 		const existingBrand = await prisma.brand.findFirst({
 			where: {
-				name: { equals: name, mode: "insensitive" },
+				name: { equals: name },
 				id: { not: id },
 			},
 		});
@@ -103,7 +110,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // Удаление бренда
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: Context) {
 	try {
 		const session = await auth();
 
