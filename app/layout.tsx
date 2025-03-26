@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { Providers } from "./providers";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -24,7 +25,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		<html lang='ru'>
 			<body className={inter.className}>
 				<Providers>
-					<Header />
+					<Suspense fallback={<div className='h-[75px]'></div>}>
+						<Header />
+					</Suspense>
 					<main className='min-h-screen pt-[75px]'>{children}</main>
 					<Footer />
 				</Providers>

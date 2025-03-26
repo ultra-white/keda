@@ -1,17 +1,13 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function ErrorPage() {
-	const searchParams = useSearchParams();
-	const [error, setError] = useState<string>("");
-
-	useEffect(() => {
-		const error = searchParams.get("error");
-		setError(error || "Произошла неизвестная ошибка");
-	}, [searchParams]);
+// Серверный компонент получает searchParams напрямую из Next.js
+export default function ErrorPage({
+	searchParams,
+}: {
+	searchParams: { [key: string]: string | string[] | undefined };
+}) {
+	// Получаем параметр ошибки из пропсов на сервере
+	const errorMessage = typeof searchParams.error === "string" ? searchParams.error : "Произошла неизвестная ошибка";
 
 	return (
 		<div className='min-h-screen flex items-center justify-center bg-gray-50'>
@@ -20,7 +16,7 @@ export default function ErrorPage() {
 					<h2 className='text-center text-3xl font-bold text-gray-900'>Ошибка</h2>
 				</div>
 
-				<div className='bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative'>{error}</div>
+				<div className='bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative'>{errorMessage}</div>
 
 				<div className='text-center'>
 					<Link href='/auth/signin' className='text-black hover:text-gray-700 text-sm font-medium'>

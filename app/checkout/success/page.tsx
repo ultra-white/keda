@@ -1,34 +1,19 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Package, Home, ArrowRight, ShoppingBag } from "lucide-react";
 import Button from "@/app/components/shared/Button";
+import { redirect } from "next/navigation";
 
-export default function CheckoutSuccessPage() {
-	const searchParams = useSearchParams();
-	const router = useRouter();
-	const [orderId, setOrderId] = useState<string | null>(null);
+export default function CheckoutSuccessPage({
+	searchParams,
+}: {
+	searchParams: { [key: string]: string | string[] | undefined };
+}) {
+	// Получаем ID заказа из параметров URL на сервере
+	const orderId = typeof searchParams.orderId === "string" ? searchParams.orderId : null;
 
-	useEffect(() => {
-		const id = searchParams.get("orderId");
-
-		if (!id) {
-			// Если нет id заказа, перенаправляем на главную
-			router.push("/");
-			return;
-		}
-
-		setOrderId(id);
-	}, [searchParams, router]);
-
+	// Если нет ID заказа, перенаправляем на главную
 	if (!orderId) {
-		return (
-			<div className='container mx-auto px-[25px] lg:px-[50px] py-12 mt-16 flex justify-center items-center min-h-[60vh]'>
-				<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900'></div>
-			</div>
-		);
+		redirect("/");
 	}
 
 	return (

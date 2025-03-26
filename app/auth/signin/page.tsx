@@ -7,10 +7,17 @@ import Link from "next/link";
 import Button from "@/app/components/shared/Button";
 import Input from "@/app/components/shared/Input";
 
-export default function SignInPage() {
+export default function SignInPage({
+	searchParams = {},
+}: {
+	searchParams?: { [key: string]: string | string[] | undefined };
+}) {
 	const router = useRouter();
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
+
+	// Если есть redirect параметр, его нужно сохранить
+	const redirectPath = typeof searchParams.redirect === "string" ? searchParams.redirect : "/profile";
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -27,7 +34,7 @@ export default function SignInPage() {
 			});
 
 			if (!res?.error) {
-				router.push("/profile");
+				router.push(redirectPath);
 				router.refresh();
 			} else {
 				setError("Неверный email или пароль");
