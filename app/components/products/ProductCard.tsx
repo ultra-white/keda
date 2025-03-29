@@ -7,28 +7,12 @@ import { formatPrice } from "@/lib/utils";
 
 export interface Product {
 	id: string;
-	brandId: string | null;
-	brand: {
-		id: string;
-		name: string;
-	} | null;
-	brandName: string;
-	model: string;
+	name: string;
+	description?: string;
 	price: number;
-	oldPrice?: number | null;
-	description: string;
-	categoryId: string;
-	image: string;
-	createdAt: string;
-	updatedAt: string;
-	category: {
-		id: string;
-		name: string;
-		slug: string;
-	};
+	oldPrice?: number;
 	selectedSize?: number | null;
-	isNew?: boolean;
-	isOnSale?: boolean;
+	// Добавьте другие необходимые поля
 }
 
 interface ProductCardProps {

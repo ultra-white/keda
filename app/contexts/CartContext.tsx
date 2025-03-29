@@ -1,9 +1,18 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
-import { Product } from "@/app/components/products/ProductCard";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
+
+export interface Product {
+	id: string;
+	name: string;
+	description?: string;
+	price: number;
+	oldPrice?: number;
+	selectedSize?: number | null;
+	// Добавьте другие необходимые поля
+}
 
 type CartItem = {
 	product: Product;

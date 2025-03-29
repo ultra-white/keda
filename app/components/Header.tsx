@@ -7,7 +7,7 @@ import Button from "./shared/Button";
 import Input from "./shared/Input";
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { useCart } from "@/app/contexts/CartContext";
+import { useCart } from "../contexts/CartContext";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 // Интерфейс для категории

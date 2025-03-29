@@ -33,7 +33,7 @@
 		"@tailwindcss/postcss": "^4",
 		"@types/bcrypt": "^5.0.2",
 		"@types/bcryptjs": "^2.4.6",
-		"@types/node": "^20.17.24",
+		"@types/node": "^20.17.28",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"eslint": "^9",
@@ -41,5 +41,10 @@
 		"tailwindcss": "^4",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.8.2"
+	},
+	"ts-node": {
+		"compilerOptions": {
+			"module": "commonjs"
+		}
 	}
 }
