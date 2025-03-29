@@ -1,15 +1,11 @@
 {
-	"name": "keda-shop",
+	"name": "keda",
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
 		"dev": "next dev --turbopack",
 		"build": "next build",
 		"start": "next start",
-		"lint": "next lint",
-		"seed": "ts-node prisma/seed.ts"
-	},
-	"prisma": {
 		"seed": "ts-node prisma/seed.ts"
 	},
 	"dependencies": {

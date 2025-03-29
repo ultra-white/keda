@@ -33,8 +33,8 @@
 1. Клонируйте репозиторий:
 
 ```bash
-git clone https://github.com/yourusername/keda-shop.git
-cd keda-shop
+git clone https://github.com/ultra-white/keda.git
+cd keda
 ```
 
 2. Установите зависимости:
@@ -52,17 +52,11 @@ cp .env.example .env
 Файл `.env.example` содержит следующие переменные окружения:
 
 ```
-# SQLite
-DATABASE_URL="file:./keda_db.db"
-
-# PostgreSQL (Change provider in prisma/schema.prisma)
 # DATABASE_URL="postgresql://postgres:admin@localhost:5432/keda_db"
 
 NEXTAUTH_SECRET="your-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
 ```
-
-Для использования PostgreSQL вместо SQLite раскомментируйте строку с PostgreSQL URL и внесите изменения в `prisma/schema.prisma`, изменив провайдер на "postgresql".
 
 4. Настройте базу данных:
 
@@ -82,14 +76,12 @@ npx prisma generate
 npm run dev
 ```
 
-7. Откройте [http://localhost:3000](http://localhost:3000) в браузере.
-
 ### Заполнение базы данных (опционально)
 
 Если вы хотите заполнить базу данных тестовыми данными:
 
 ```bash
-npx ts-node -P tsconfig.node.json prisma/seed.ts
+npm run seed
 ```
 
 ## Структура проекта
