@@ -40,8 +40,11 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
 }
 
 // Обновление товара
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+export async function PUT(request: Request, context: { params: { id: string } }) {
 	try {
+		// Получаем параметры асинхронно
+		const { id } = context.params;
+
 		const session = await auth();
 
 		if (!session?.user?.email) {
@@ -56,14 +59,13 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
 			return NextResponse.json({ error: "Недостаточно прав" }, { status: 403 });
 		}
 
-		const { brand, model, price, oldPrice, description, categoryId, image } = await req.json();
+		const { brand, model, price, oldPrice, description, categoryId, image } = await request.json();
 
 		if (!model || !price || !description || !categoryId || !image) {
 			return NextResponse.json({ error: "Все обязательные поля должны быть заполнены" }, { status: 400 });
 		}
 
 		// Проверка существования товара
-		const id = context.params.id;
 		const product = await prisma.product.findUnique({
 			where: { id },
 			include: {

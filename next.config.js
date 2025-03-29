@@ -4,39 +4,11 @@ const nextConfig = {
 		remotePatterns: [
 			{
 				protocol: "https",
-				hostname: "images.unsplash.com",
+				hostname: "**",
 			},
 			{
-				protocol: "https",
-				hostname: "unsplash.com",
-			},
-			{
-				protocol: "https",
-				hostname: "via.placeholder.com",
-			},
-			{
-				protocol: "https",
-				hostname: "placehold.co",
-			},
-			{
-				protocol: "https",
-				hostname: "basket-17.wbbasket.ru",
-			},
-			{
-				protocol: "https",
-				hostname: "basket-15.wbbasket.ru",
-			},
-			{
-				protocol: "https",
-				hostname: "i.postimg.cc",
-			},
-			{
-				protocol: "https",
-				hostname: "basket-12.wbbasket.ru",
-			},
-			{
-				protocol: "https",
-				hostname: "basket-12.wbbasket.ru",
+				protocol: "http",
+				hostname: "**",
 			},
 		],
 	},
