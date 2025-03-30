@@ -65,7 +65,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 			if (!isAuthenticated) return;
 
 			try {
-				console.log("Синхронизация корзины с сервером:", JSON.stringify(cartItems));
 				const response = await fetch("/api/cart", {
 					method: "POST",
 					headers: {
@@ -79,12 +78,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 					throw new Error(`Ошибка синхронизации: ${errorData.error || response.statusText}`);
 				}
 
-				const result = await response.json();
-				console.log("Результат синхронизации:", result);
+				// Просто дожидаемся ответа без вывода в консоль
+				await response.json();
+
+				// Возвращаем успешное выполнение для обработки в вызывающем коде
+				return true;
 			} catch (error) {
 				console.error("Ошибка при синхронизации корзины с БД:", error);
 				// Показываем уведомление об ошибке
 				toast.error("Ошибка синхронизации корзины. Попробуйте перезагрузить страницу.");
+				return false;
 			}
 		},
 		[isAuthenticated]
@@ -170,7 +173,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 				try {
 					const parsedCart = JSON.parse(savedCart);
 					setItems(parsedCart);
-					console.log("Корзина загружена из localStorage:", parsedCart);
 				} catch (error) {
 					console.error("Ошибка при загрузке корзины из localStorage:", error);
 					localStorage.removeItem("cart");
@@ -241,14 +243,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 					try {
 						const itemsJson = JSON.stringify(items);
 						localStorage.setItem("cart", itemsJson);
-						console.log("Корзина сохранена в localStorage:", items);
 					} catch (error) {
 						console.error("Ошибка при сохранении корзины в localStorage:", error);
 					}
 				}
 			} else if (items.length === 0 && !window.location.href.includes("/cart/clear")) {
 				// Очищаем хранилище только если корзина действительно пуста и это не результат обновления страницы
-				console.log("Корзина пуста, очищаем хранилище");
 				if (isAuthenticated) {
 					clearDbCart();
 				}
@@ -365,7 +365,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 	// Удаление товара из корзины
 	const removeItem = async (productId: string, selectedSize?: number | null) => {
-		setIsLoading(true);
+		// Храним предыдущее состояние для возможности отката изменений
+		const previousItems = [...items];
+
+		// Обновляем локальное состояние немедленно
+		setItems((prevItems) => {
+			if (selectedSize !== undefined) {
+				// Удаляем конкретный размер товара
+				return prevItems.filter(
+					(item) => !(item.product.id === productId && item.product.selectedSize === selectedSize)
+				);
+			} else {
+				// Удаляем все размеры этого товара
+				return prevItems.filter((item) => item.product.id !== productId);
+			}
+		});
 
 		try {
 			if (isAuthenticated) {
@@ -383,33 +397,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 				if (!response.ok) {
 					const error = await response.json();
+					// Восстанавливаем предыдущее состояние в случае ошибки
+					setItems(previousItems);
 					throw new Error(error.error || "Ошибка при удалении товара");
 				}
 			}
-
-			// В любом случае обновляем локальное состояние
-			setItems((prevItems) => {
-				if (selectedSize !== undefined) {
-					// Удаляем конкретный размер товара
-					return prevItems.filter(
-						(item) => !(item.product.id === productId && item.product.selectedSize === selectedSize)
-					);
-				} else {
-					// Удаляем все размеры этого товара
-					return prevItems.filter((item) => item.product.id !== productId);
-				}
-			});
 		} catch (error) {
 			console.error("Ошибка при удалении товара из корзины:", error);
 			toast.error("Не удалось удалить товар из корзины");
-		} finally {
-			setIsLoading(false);
+			// В случае ошибки возвращаем предыдущее состояние
+			setItems(previousItems);
 		}
+
+		return Promise.resolve(); // Возвращаем промис для цепочки .finally()
 	};
 
 	// Обновление количества товара
 	const updateQuantity = async (productId: string, quantity: number, selectedSize?: number | null) => {
-		setIsLoading(true);
+		// Храним предыдущее состояние для возможности отката изменений
+		const previousItems = [...items];
+
+		// Обновляем локальное состояние немедленно
+		setItems((prevItems) => {
+			if (selectedSize !== undefined) {
+				// Обновляем конкретный размер товара
+				return prevItems.map((item) =>
+					item.product.id === productId && item.product.selectedSize === selectedSize ? { ...item, quantity } : item
+				);
+			} else {
+				// Обновляем все размеры этого товара
+				return prevItems.map((item) => (item.product.id === productId ? { ...item, quantity } : item));
+			}
+		});
 
 		try {
 			if (quantity <= 0) {
@@ -433,33 +452,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 				if (!response.ok) {
 					const error = await response.json();
+					// Восстанавливаем предыдущее состояние в случае ошибки
+					setItems(previousItems);
 					throw new Error(error.error || "Ошибка при обновлении товара");
 				}
 			}
-
-			// В любом случае обновляем локальное состояние
-			setItems((prevItems) => {
-				if (selectedSize !== undefined) {
-					// Обновляем конкретный размер товара
-					return prevItems.map((item) =>
-						item.product.id === productId && item.product.selectedSize === selectedSize ? { ...item, quantity } : item
-					);
-				} else {
-					// Обновляем все размеры этого товара
-					return prevItems.map((item) => (item.product.id === productId ? { ...item, quantity } : item));
-				}
-			});
 		} catch (error) {
 			console.error("Ошибка при обновлении количества товара:", error);
 			toast.error("Не удалось обновить количество товара");
-		} finally {
-			setIsLoading(false);
+			// В случае ошибки возвращаем предыдущее состояние
+			setItems(previousItems);
 		}
+
+		return Promise.resolve(); // Возвращаем промис для цепочки .finally()
 	};
 
 	// Очистка корзины
 	const clearCart = async () => {
-		setIsLoading(true);
+		// Храним предыдущее состояние для возможности отката изменений
+		const previousItems = [...items];
+
+		// Сразу очищаем локальное состояние
+		setItems([]);
 
 		try {
 			if (isAuthenticated) {
@@ -473,18 +487,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 				if (!response.ok) {
 					const error = await response.json();
+					// Восстанавливаем предыдущее состояние в случае ошибки
+					setItems(previousItems);
 					throw new Error(error.error || "Ошибка при очистке корзины");
 				}
 			}
-
-			// В любом случае очищаем локальное состояние
-			setItems([]);
 		} catch (error) {
 			console.error("Ошибка при очистке корзины:", error);
 			toast.error("Не удалось очистить корзину");
-		} finally {
-			setIsLoading(false);
+			// В случае ошибки возвращаем предыдущее состояние
+			setItems(previousItems);
 		}
+
+		return Promise.resolve(); // Возвращаем промис для цепочки .finally()
 	};
 
 	// Подсчет общего количества товаров

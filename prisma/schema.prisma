@@ -65,7 +65,7 @@ model CartItem {
   cartId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  size      String?
+  size      Int
   cart      Cart     @relation(fields: [cartId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
 
@@ -94,7 +94,7 @@ model OrderItem {
   orderId   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  size      String?
+  size      Int
   order     Order    @relation(fields: [orderId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
 

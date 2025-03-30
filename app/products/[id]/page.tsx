@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 	}
 
 	return {
-		title: `${product.brand?.name || product.brandName} ${product.model} - Кеда`,
+		title: `Кеда - ${product.brand?.name || product.brandName} ${product.model}`,
 		description: product.description.substring(0, 160),
 	};
 }
@@ -128,7 +128,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 	const similarProducts = await getSimilarProducts(product.categoryId, product.id);
 
 	return (
-		<main className='container mx-auto px-[25px] lg:px-[50px] py-12 mt-8'>
+		<main className='container mx-auto px-[25px] lg:px-[50px] py-4'>
 			{/* Кнопка назад */}
 			<Link href='/products' className='inline-flex items-center text-black mb-8 hover:text-gray-700 hover:underline'>
 				<ArrowLeft className='h-4 w-4 mr-2' />
