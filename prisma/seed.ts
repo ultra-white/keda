@@ -105,8 +105,6 @@ async function main() {
 			description: "Классические кроссовки Nike Air Force 1 в белом цвете. Кожаный верх, амортизирующая подошва.",
 			image:
 				"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi8.amplience.net%2Fi%2Fjpl%2Fjd_030664_a%3Fv%3D1&f=1&nofb=1&ipt=c3ce964e0e3e2d1b0733a1b7c452bea988cf93352e76e6006ba4e2e4da1cae00&ipo=images",
-			isNew: false,
-			isOnSale: true,
 			categoryId: categories[0].id, // Men
 		},
 		{
@@ -116,8 +114,6 @@ async function main() {
 			price: 12990,
 			description: "Беговые кроссовки Adidas Ultra Boost с технологией Boost для максимальной амортизации.",
 			image: "https://i.postimg.cc/635W9jFG/image.png",
-			isNew: true,
-			isOnSale: false,
 			categoryId: categories[0].id, // Men
 		},
 		{
@@ -128,8 +124,6 @@ async function main() {
 			oldPrice: 8990,
 			description: "Классические кроссовки Puma Suede с замшевым верхом. Подходят для повседневной носки.",
 			image: "https://i.postimg.cc/rp5j8g5c/image.png",
-			isNew: false,
-			isOnSale: true,
 			categoryId: categories[0].id, // Men
 		},
 	];
@@ -143,8 +137,6 @@ async function main() {
 			price: 11990,
 			description: "Женские кроссовки Nike Air Max 270 с воздушной подушкой увеличенного размера для комфорта.",
 			image: "https://i.postimg.cc/HsCymHBJ/image.png",
-			isNew: true,
-			isOnSale: false,
 			categoryId: categories[1].id, // Women
 		},
 		{
@@ -155,8 +147,6 @@ async function main() {
 			oldPrice: 9990,
 			description: "Классические женские кроссовки Adidas Stan Smith из белой кожи с перфорацией.",
 			image: "https://i.postimg.cc/KzPmDXLV/image.png",
-			isNew: false,
-			isOnSale: true,
 			categoryId: categories[1].id, // Women
 		},
 		{
@@ -166,8 +156,6 @@ async function main() {
 			price: 5990,
 			description: "Женские кроссовки Reebok Classic Leather с мягким кожаным верхом и удобной стелькой.",
 			image: "https://i.postimg.cc/ht2shh5Z/image.png",
-			isNew: false,
-			isOnSale: false,
 			categoryId: categories[1].id, // Women
 		},
 	];
@@ -181,8 +169,6 @@ async function main() {
 			price: 5990,
 			description: "Детские кроссовки Nike Air Max с амортизирующей подошвой и яркими цветами.",
 			image: "https://i.postimg.cc/HL5rRhX0/image.png",
-			isNew: true,
-			isOnSale: false,
 			categoryId: categories[2].id, // Kids
 		},
 		{
@@ -193,8 +179,6 @@ async function main() {
 			oldPrice: 6990,
 			description: "Детские кроссовки Adidas Superstar с узнаваемым дизайном и прочной подошвой.",
 			image: "https://i.postimg.cc/DZwKLWvW/image.png",
-			isNew: false,
-			isOnSale: true,
 			categoryId: categories[2].id, // Kids
 		},
 	];
@@ -224,7 +208,7 @@ async function main() {
 			cartId: cart.id,
 			productId: createdProducts[0].id, // Nike Air Force 1
 			quantity: 1,
-			size: "42",
+			size: 42,
 		},
 	});
 
@@ -233,7 +217,7 @@ async function main() {
 			cartId: cart.id,
 			productId: createdProducts[3].id, // Nike Air Max 270 (Женские)
 			quantity: 1,
-			size: "38",
+			size: 38,
 		},
 	});
 
@@ -256,7 +240,7 @@ async function main() {
 			productId: createdProducts[1].id, // Adidas Ultra Boost
 			quantity: 1,
 			price: createdProducts[1].price,
-			size: "43",
+			size: 43,
 		},
 	});
 
@@ -266,7 +250,7 @@ async function main() {
 			productId: createdProducts[6].id, // Air Max Kids
 			quantity: 2,
 			price: createdProducts[6].price,
-			size: "32",
+			size: 32,
 		},
 	});
 
@@ -286,7 +270,7 @@ async function main() {
 			productId: createdProducts[2].id, // Puma Suede Classic
 			quantity: 1,
 			price: createdProducts[2].price,
-			size: "42",
+			size: 42,
 		},
 	});
 
@@ -296,7 +280,7 @@ async function main() {
 			productId: createdProducts[4].id, // Adidas Stan Smith
 			quantity: 1,
 			price: createdProducts[4].price,
-			size: "37",
+			size: 37,
 		},
 	});
 
