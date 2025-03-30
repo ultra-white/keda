@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { OrderStatus } from "@prisma/client";
 
 // Получение информации о конкретном заказе
 export async function GET(request: NextRequest, context: { params: { id: string } }) {
@@ -85,7 +86,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
 		}
 
 		// Проверяем, что статус имеет допустимое значение
-		const validStatuses = ["PROCESSING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
+		const validStatuses = Object.values(OrderStatus);
 		if (!validStatuses.includes(status)) {
 			return NextResponse.json({ error: "Недопустимый статус заказа" }, { status: 400 });
 		}
@@ -93,7 +94,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
 		// Обновляем статус заказа
 		const updatedOrder = await prisma.order.update({
 			where: { id: orderId },
-			data: { status },
+			data: { status: status as OrderStatus },
 			include: {
 				user: {
 					select: {

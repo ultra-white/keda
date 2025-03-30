@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { OrderStatus } from "@prisma/client";
 
 export async function GET(request: NextRequest, context: { params: { id: string } }) {
 	try {
@@ -95,8 +96,8 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
 			return NextResponse.json({ error: "Заказ не найден" }, { status: 404 });
 		}
 
-		// Проверяем, можно ли отменить заказ (только заказы в статусе PROCESSING или CONFIRMED)
-		const cancelableStatuses = ["PROCESSING", "CONFIRMED"];
+		// Проверяем, можно ли отменить заказ (только заказы в статусе PENDING или PROCESSING)
+		const cancelableStatuses = [OrderStatus.PENDING, OrderStatus.PROCESSING];
 		if (!cancelableStatuses.includes(order.status)) {
 			return NextResponse.json({ error: "Невозможно отменить заказ в текущем статусе" }, { status: 400 });
 		}
@@ -104,7 +105,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
 		// Отменяем заказ
 		const updatedOrder = await prisma.order.update({
 			where: { id },
-			data: { status: "CANCELLED" },
+			data: { status: OrderStatus.CANCELLED },
 			include: {
 				items: {
 					include: {

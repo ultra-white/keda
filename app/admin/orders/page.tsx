@@ -5,10 +5,11 @@ import Link from "next/link";
 import { formatRu } from "@/lib/utils";
 import { CheckCircle, Clock, XCircle, Package, Truck, Search, Eye } from "lucide-react";
 import Button from "@/app/components/shared/Button";
+import { OrderStatus } from "@prisma/client";
 
 interface Order {
 	id: string;
-	status: string;
+	status: OrderStatus;
 	total: number;
 	createdAt: string;
 	updatedAt: string;
@@ -84,36 +85,35 @@ export default function OrdersAdminPage() {
 		setFilteredOrders(result);
 	}, [filter, searchTerm, orders]);
 
-	const getStatusName = (status: string) => {
+	const getStatusName = (status: OrderStatus) => {
 		switch (status) {
-			case "COMPLETED":
-				return "Завершен";
-			case "CONFIRMED":
-				return "Подтвержден";
-			case "PROCESSING":
-				return "В обработке";
-			case "CANCELLED":
-				return "Отменен";
-			case "SHIPPED":
-				return "Доставляется";
-			case "DELIVERED":
+			case OrderStatus.DELIVERED:
 				return "Доставлен";
+			case OrderStatus.ACCEPTED:
+				return "Подтвержден";
+			case OrderStatus.PROCESSING:
+				return "В обработке";
+			case OrderStatus.CANCELLED:
+				return "Отменен";
+			case OrderStatus.SHIPPED:
+				return "Доставляется";
 			default:
 				return "Новый";
 		}
 	};
 
-	const getStatusIcon = (status: string) => {
+	const getStatusIcon = (status: OrderStatus) => {
 		switch (status) {
-			case "COMPLETED":
-			case "DELIVERED":
+			case OrderStatus.DELIVERED:
 				return <CheckCircle className='h-5 w-5 text-green-500' />;
-			case "PROCESSING":
+			case OrderStatus.PROCESSING:
 				return <Clock className='h-5 w-5 text-yellow-500' />;
-			case "CANCELLED":
+			case OrderStatus.CANCELLED:
 				return <XCircle className='h-5 w-5 text-red-500' />;
-			case "SHIPPED":
+			case OrderStatus.SHIPPED:
 				return <Truck className='h-5 w-5 text-blue-500' />;
+			case OrderStatus.ACCEPTED:
+				return <CheckCircle className='h-5 w-5 text-blue-500' />;
 			default:
 				return <Package className='h-5 w-5 text-gray-500' />;
 		}
@@ -180,11 +180,11 @@ export default function OrdersAdminPage() {
 					onChange={(e) => setFilter(e.target.value)}
 				>
 					<option value='all'>Все статусы</option>
-					<option value='PROCESSING'>В обработке</option>
-					<option value='CONFIRMED'>Подтверждены</option>
-					<option value='SHIPPED'>Доставляются</option>
-					<option value='DELIVERED'>Доставлены</option>
-					<option value='CANCELLED'>Отменены</option>
+					<option value={OrderStatus.PROCESSING}>В обработке</option>
+					<option value={OrderStatus.ACCEPTED}>Подтверждены</option>
+					<option value={OrderStatus.SHIPPED}>Доставляются</option>
+					<option value={OrderStatus.DELIVERED}>Доставлены</option>
+					<option value={OrderStatus.CANCELLED}>Отменены</option>
 				</select>
 			</div>
 

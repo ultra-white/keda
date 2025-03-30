@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { OrderStatus } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
 		const order = await prisma.order.create({
 			data: {
 				userId: user.id,
-				status: "PROCESSING", // Начальный статус
+				status: OrderStatus.PROCESSING, // Начальный статус
 				total: totalAmount,
 				items: {
 					create: items.map(

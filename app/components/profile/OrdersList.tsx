@@ -6,6 +6,7 @@ import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ArrowRight, Package, CheckCircle, Clock, XCircle, ShoppingBag, Truck } from "lucide-react";
+import { OrderStatus } from "@prisma/client";
 
 type OrderItem = {
 	id: string;
@@ -24,7 +25,7 @@ type OrderItem = {
 type Order = {
 	id: string;
 	userId: string;
-	status: string;
+	status: OrderStatus;
 	total: number;
 	createdAt: string;
 	items: OrderItem[];
@@ -38,37 +39,34 @@ const formatPrice = (price: number) => {
 	}).format(price);
 };
 
-const getStatusIcon = (status: string) => {
+const getStatusIcon = (status: OrderStatus) => {
 	switch (status) {
-		case "COMPLETED":
-		case "DELIVERED":
+		case OrderStatus.DELIVERED:
 			return <CheckCircle className='h-5 w-5 text-green-500' />;
-		case "PROCESSING":
+		case OrderStatus.PROCESSING:
 			return <Clock className='h-5 w-5 text-yellow-500' />;
-		case "CANCELLED":
+		case OrderStatus.CANCELLED:
 			return <XCircle className='h-5 w-5 text-red-500' />;
-		case "SHIPPED":
+		case OrderStatus.SHIPPED:
 			return <Truck className='h-5 w-5 text-blue-500' />;
-		case "CONFIRMED":
+		case OrderStatus.ACCEPTED:
 			return <CheckCircle className='h-5 w-5 text-blue-500' />;
 		default:
 			return <Package className='h-5 w-5 text-gray-500' />;
 	}
 };
 
-const getStatusName = (status: string) => {
+const getStatusName = (status: OrderStatus) => {
 	switch (status) {
-		case "COMPLETED":
-			return "Завершен";
-		case "CONFIRMED":
+		case OrderStatus.ACCEPTED:
 			return "Подтвержден";
-		case "PROCESSING":
+		case OrderStatus.PROCESSING:
 			return "В обработке";
-		case "CANCELLED":
+		case OrderStatus.CANCELLED:
 			return "Отменен";
-		case "SHIPPED":
+		case OrderStatus.SHIPPED:
 			return "Доставляется";
-		case "DELIVERED":
+		case OrderStatus.DELIVERED:
 			return "Доставлен";
 		default:
 			return "Новый";

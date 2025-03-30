@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role, OrderStatus } from "@prisma/client";
 import { hash } from "bcrypt";
 
 const prisma = new PrismaClient();
@@ -11,7 +11,6 @@ async function main() {
 	await prisma.cart.deleteMany();
 	await prisma.orderItem.deleteMany();
 	await prisma.order.deleteMany();
-	await prisma.review.deleteMany();
 	await prisma.product.deleteMany();
 	await prisma.category.deleteMany();
 	await prisma.brand.deleteMany();
@@ -26,7 +25,7 @@ async function main() {
 			email: "admin@example.com",
 			name: "Администратор",
 			password: adminPassword,
-			role: "ADMIN",
+			role: Role.ADMIN,
 		},
 	});
 
@@ -39,7 +38,7 @@ async function main() {
 			email: "user@example.com",
 			name: "Тестовый пользователь",
 			password: userPassword,
-			role: "USER",
+			role: Role.USER,
 		},
 	});
 
@@ -104,7 +103,8 @@ async function main() {
 			price: 9990,
 			oldPrice: 11990,
 			description: "Классические кроссовки Nike Air Force 1 в белом цвете. Кожаный верх, амортизирующая подошва.",
-			image: "https://i.postimg.cc/SKSVVCwG/image.png",
+			image:
+				"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi8.amplience.net%2Fi%2Fjpl%2Fjd_030664_a%3Fv%3D1&f=1&nofb=1&ipt=c3ce964e0e3e2d1b0733a1b7c452bea988cf93352e76e6006ba4e2e4da1cae00&ipo=images",
 			isNew: false,
 			isOnSale: true,
 			categoryId: categories[0].id, // Men
@@ -244,7 +244,7 @@ async function main() {
 	const order1 = await prisma.order.create({
 		data: {
 			userId: user.id,
-			status: "PROCESSING",
+			status: OrderStatus.PROCESSING,
 			total: createdProducts[1].price + createdProducts[6].price * 2,
 		},
 	});
@@ -274,7 +274,7 @@ async function main() {
 	const order2 = await prisma.order.create({
 		data: {
 			userId: user.id,
-			status: "DELIVERED",
+			status: OrderStatus.DELIVERED,
 			total: createdProducts[2].price + createdProducts[4].price,
 		},
 	});

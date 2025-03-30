@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { OrderStatus } from "@prisma/client";
 
 // Получение товара по ID
 export async function GET(req: NextRequest, context: { params: { id: string } }) {
@@ -223,7 +224,7 @@ export async function DELETE(req: NextRequest, context: { params: { id: string }
 					productId: id,
 					order: {
 						status: {
-							in: ["PROCESSING", "CONFIRMED", "CANCELLED"],
+							in: [OrderStatus.PROCESSING, OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
 						},
 					},
 				},

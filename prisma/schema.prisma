@@ -9,17 +9,15 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
-  name          String?
+  name          String
   email         String    @unique
-  password      String?
-  role          String    @default("USER")
+  password      String
   emailVerified DateTime?
-  image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  role          Role      @default(USER)
   cart          Cart?
   orders        Order[]
-  reviews       Review[]
 }
 
 model Product {
@@ -40,10 +38,6 @@ model Product {
   orderItems  OrderItem[]
   brand       Brand?      @relation(fields: [brandId], references: [id])
   category    Category    @relation(fields: [categoryId], references: [id])
-  reviews     Review[]
-
-  @@index([categoryId])
-  @@index([brandId])
 }
 
 model Category {
@@ -82,10 +76,10 @@ model CartItem {
 model Order {
   id        String      @id @default(cuid())
   userId    String
-  status    String      @default("PENDING")
   total     Float
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  status    OrderStatus @default(PROCESSING)
   user      User        @relation(fields: [userId], references: [id])
   items     OrderItem[]
 
@@ -108,21 +102,6 @@ model OrderItem {
   @@index([orderId])
 }
 
-model Review {
-  id        String   @id @default(cuid())
-  rating    Int
-  comment   String?
-  userId    String
-  productId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([productId])
-}
-
 model Brand {
   id        String    @id @default(cuid())
   name      String
@@ -137,8 +116,8 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING
-  PAID
+  PROCESSING
+  ACCEPTED
   SHIPPED
   DELIVERED
   CANCELLED

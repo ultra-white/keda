@@ -7,6 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 import { formatRu } from "@/lib/utils";
 import React from "react";
 import Button from "@/app/components/shared/Button";
+import { OrderStatus } from "@prisma/client";
 import {
 	ChevronLeft,
 	CheckCircle,
@@ -39,7 +40,7 @@ interface OrderItem {
 
 interface Order {
 	id: string;
-	status: string;
+	status: OrderStatus;
 	total: number;
 	createdAt: string;
 	updatedAt: string;
@@ -62,7 +63,7 @@ export default function OrderDetailsPage() {
 	const [isUpdating, setIsUpdating] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isDeletingItem, setIsDeletingItem] = useState<string | null>(null);
-	const [selectedStatus, setSelectedStatus] = useState("");
+	const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(OrderStatus.PROCESSING);
 	const [updateMessage, setUpdateMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -78,7 +79,7 @@ export default function OrderDetailsPage() {
 
 				const data = await response.json();
 				setOrder(data);
-				setSelectedStatus(data.status);
+				setSelectedStatus(data.status as OrderStatus);
 			} catch (err) {
 				setError((err as Error).message);
 			} finally {
@@ -111,6 +112,7 @@ export default function OrderDetailsPage() {
 
 			const updatedOrder = await response.json();
 			setOrder(updatedOrder);
+			setSelectedStatus(updatedOrder.status as OrderStatus);
 			setUpdateMessage({
 				type: "success",
 				text: "Статус заказа успешно обновлен",
@@ -196,36 +198,35 @@ export default function OrderDetailsPage() {
 		}
 	};
 
-	const getStatusName = (status: string) => {
+	const getStatusName = (status: OrderStatus) => {
 		switch (status) {
-			case "COMPLETED":
-				return "Завершен";
-			case "CONFIRMED":
-				return "Подтвержден";
-			case "PROCESSING":
-				return "В обработке";
-			case "CANCELLED":
-				return "Отменен";
-			case "SHIPPED":
-				return "Доставляется";
-			case "DELIVERED":
+			case OrderStatus.DELIVERED:
 				return "Доставлен";
+			case OrderStatus.ACCEPTED:
+				return "Подтвержден";
+			case OrderStatus.PROCESSING:
+				return "В обработке";
+			case OrderStatus.CANCELLED:
+				return "Отменен";
+			case OrderStatus.SHIPPED:
+				return "Доставляется";
 			default:
 				return "Новый";
 		}
 	};
 
-	const getStatusIcon = (status: string) => {
+	const getStatusIcon = (status: OrderStatus) => {
 		switch (status) {
-			case "COMPLETED":
-			case "DELIVERED":
+			case OrderStatus.DELIVERED:
 				return <CheckCircle className='h-5 w-5 text-green-500' />;
-			case "PROCESSING":
+			case OrderStatus.PROCESSING:
 				return <Clock className='h-5 w-5 text-yellow-500' />;
-			case "CANCELLED":
+			case OrderStatus.CANCELLED:
 				return <XCircle className='h-5 w-5 text-red-500' />;
-			case "SHIPPED":
+			case OrderStatus.SHIPPED:
 				return <Truck className='h-5 w-5 text-blue-500' />;
+			case OrderStatus.ACCEPTED:
+				return <CheckCircle className='h-5 w-5 text-blue-500' />;
 			default:
 				return <Package className='h-5 w-5 text-gray-500' />;
 		}
@@ -366,15 +367,15 @@ export default function OrderDetailsPage() {
 							<div className='flex items-center gap-2'>
 								<select
 									value={selectedStatus}
-									onChange={(e) => setSelectedStatus(e.target.value)}
+									onChange={(e) => setSelectedStatus(e.target.value as OrderStatus)}
 									className='border border-gray-300 rounded-md p-2 text-sm flex-1'
 									disabled={isUpdating}
 								>
-									<option value='PROCESSING'>В обработке</option>
-									<option value='CONFIRMED'>Подтвержден</option>
-									<option value='SHIPPED'>Доставляется</option>
-									<option value='DELIVERED'>Доставлен</option>
-									<option value='CANCELLED'>Отменен</option>
+									<option value={OrderStatus.PROCESSING}>В обработке</option>
+									<option value={OrderStatus.ACCEPTED}>Подтвержден</option>
+									<option value={OrderStatus.SHIPPED}>Доставляется</option>
+									<option value={OrderStatus.DELIVERED}>Доставлен</option>
+									<option value={OrderStatus.CANCELLED}>Отменен</option>
 								</select>
 
 								<Button

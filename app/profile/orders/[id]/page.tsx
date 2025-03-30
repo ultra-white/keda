@@ -8,6 +8,7 @@ import { formatDistanceToNow, format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ArrowLeft, Package, CheckCircle, XCircle, Clock, Truck, AlertTriangle } from "lucide-react";
 import React from "react";
+import { OrderStatus } from "@prisma/client";
 
 interface OrderItem {
 	id: string;
@@ -26,7 +27,7 @@ interface OrderItem {
 interface Order {
 	id: string;
 	userId: string;
-	status: string;
+	status: OrderStatus;
 	total: number;
 	createdAt: string;
 	updatedAt: string;
@@ -34,37 +35,34 @@ interface Order {
 }
 
 // Функции для работы со статусами заказа
-const getStatusIcon = (status: string) => {
+const getStatusIcon = (status: OrderStatus) => {
 	switch (status) {
-		case "COMPLETED":
-		case "DELIVERED":
-			return <CheckCircle className='h-6 w-6 text-green-500' />;
-		case "PROCESSING":
+		case OrderStatus.PROCESSING:
 			return <Clock className='h-6 w-6 text-yellow-500' />;
-		case "CANCELLED":
-			return <XCircle className='h-6 w-6 text-red-500' />;
-		case "SHIPPED":
-			return <Truck className='h-6 w-6 text-blue-500' />;
-		case "CONFIRMED":
+		case OrderStatus.ACCEPTED:
 			return <CheckCircle className='h-6 w-6 text-blue-500' />;
+		case OrderStatus.SHIPPED:
+			return <Truck className='h-6 w-6 text-blue-500' />;
+		case OrderStatus.DELIVERED:
+			return <CheckCircle className='h-6 w-6 text-green-500' />;
+		case OrderStatus.CANCELLED:
+			return <XCircle className='h-6 w-6 text-red-500' />;
 		default:
 			return <Package className='h-6 w-6 text-gray-500' />;
 	}
 };
 
-const getStatusName = (status: string) => {
+const getStatusName = (status: OrderStatus) => {
 	switch (status) {
-		case "COMPLETED":
-			return "Завершен";
-		case "CONFIRMED":
+		case OrderStatus.ACCEPTED:
 			return "Подтвержден";
-		case "PROCESSING":
+		case OrderStatus.PROCESSING:
 			return "В обработке";
-		case "CANCELLED":
+		case OrderStatus.CANCELLED:
 			return "Отменен";
-		case "SHIPPED":
+		case OrderStatus.SHIPPED:
 			return "Доставляется";
-		case "DELIVERED":
+		case OrderStatus.DELIVERED:
 			return "Доставлен";
 		default:
 			return "Новый";
@@ -120,9 +118,8 @@ export default function OrderDetailsPage() {
 	};
 
 	// Функция для проверки возможности отмены заказа
-	const canCancelOrder = (status: string) => {
-		const cancelableStatuses = ["PROCESSING", "CONFIRMED"];
-		return cancelableStatuses.includes(status);
+	const canCancelOrder = (status: OrderStatus) => {
+		return status === OrderStatus.PROCESSING || status === OrderStatus.ACCEPTED;
 	};
 
 	// Функция для отмены заказа

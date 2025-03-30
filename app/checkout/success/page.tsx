@@ -9,9 +9,9 @@ export default function CheckoutSuccessPage({
 }: {
 	searchParams: { [key: string]: string | string[] | undefined };
 }) {
-	// В текущей версии Next.js параметры URL через searchParams доступны напрямую
-	// В будущих версиях Next.js может потребоваться использовать React.use(searchParams)
-	const orderId = typeof searchParams.orderId === "string" ? searchParams.orderId : null;
+	// Используем React.use для асинхронной обработки searchParams
+	const params = React.use(Promise.resolve(searchParams));
+	const orderId = typeof params.orderId === "string" ? params.orderId : null;
 
 	// Если нет ID заказа, перенаправляем на главную
 	if (!orderId) {
