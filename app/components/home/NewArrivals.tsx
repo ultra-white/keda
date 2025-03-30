@@ -10,7 +10,7 @@ export default function NewArrivals({ products }: NewArrivalsProps) {
 	return (
 		<section className='mt-12'>
 			<div className='flex justify-between items-center mb-6'>
-				<h2 className='text-2xl font-bold'>Новые поступления</h2>
+				<h2 className='text-2xl font-bold'>Последние поступления</h2>
 				<Link href='/products' className='text-black hover:underline flex items-center'>
 					Посмотреть все
 					<svg

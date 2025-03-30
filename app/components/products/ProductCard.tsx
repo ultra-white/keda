@@ -83,12 +83,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
 					{/* Метки "Новинка" и "Скидка" */}
 					<div className='absolute top-2 left-2 flex flex-col gap-2'>
-						{product.isNew && <span className='bg-blue-500 text-white text-xs px-2 py-1 rounded'>Новинка</span>}
-						{(product.isOnSale || discount) && (
-							<span className='bg-red-500 text-white text-xs px-2 py-1 rounded'>
-								Скидка {discount ? `${discount}%` : ""}
-							</span>
-						)}
+						{discount && <span className='bg-red-500 text-white text-xs px-2 py-1 rounded'>Скидка {discount}%</span>}
 					</div>
 				</div>
 

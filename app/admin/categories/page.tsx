@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import Button from "@/app/components/shared/Button";
 import Input from "@/app/components/shared/Input";
 import { Folder, Edit2, Trash2, Search } from "lucide-react";
+import FilterSortPanel from "@/app/components/admin/FilterSortPanel";
+import { sortItems, parseSortString, generateSortOptions } from "@/app/lib/admin/sortUtils";
 
 interface Category {
 	id: string;
@@ -16,6 +18,7 @@ interface Category {
 
 export default function CategoriesPage() {
 	const [categories, setCategories] = useState<Category[]>([]);
+	const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
@@ -24,6 +27,7 @@ export default function CategoriesPage() {
 	const [name, setName] = useState("");
 	const [slug, setSlug] = useState("");
 	const [searchTerm, setSearchTerm] = useState("");
+	const [sortOrder, setSortOrder] = useState("");
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const { isAdmin, isLoading: authLoading } = useAuth();
@@ -39,6 +43,7 @@ export default function CategoriesPage() {
 				}
 				const data = await res.json();
 				setCategories(data);
+				setFilteredCategories(data);
 			} catch (err) {
 				setError("Ошибка при загрузке категорий");
 				console.error(err);
@@ -55,6 +60,31 @@ export default function CategoriesPage() {
 			}
 		}
 	}, [isAdmin, authLoading, router]);
+
+	// Фильтрация и сортировка категорий
+	useEffect(() => {
+		let results = categories;
+
+		// Фильтрация по поисковому запросу
+		if (searchTerm) {
+			const term = searchTerm.toLowerCase();
+			results = results.filter((category) => {
+				const name = category.name.toLowerCase();
+				const description = (category.description || "").toLowerCase();
+				return name.includes(term) || description.includes(term);
+			});
+		}
+
+		// Сортировка
+		if (sortOrder) {
+			const [sortKey, sortDirection] = parseSortString(sortOrder);
+			if (sortKey) {
+				results = sortItems(results, sortKey, sortDirection);
+			}
+		}
+
+		setFilteredCategories(results);
+	}, [categories, searchTerm, sortOrder]);
 
 	const handleSlugGeneration = (value: string) => {
 		setName(value);
@@ -167,14 +197,20 @@ export default function CategoriesPage() {
 		setFormError(null);
 	};
 
-	// Фильтрация категорий по поисковому запросу
-	const filteredCategories = categories.filter((category) => {
-		const name = category.name.toLowerCase();
-		const description = (category.description || "").toLowerCase();
-		const term = searchTerm.toLowerCase();
+	// Обработчики для компонента FilterSortPanel
+	const handleSearch = (term: string) => {
+		setSearchTerm(term);
+	};
 
-		return name.includes(term) || description.includes(term);
-	});
+	const handleSortChange = (sort: string) => {
+		setSortOrder(sort);
+	};
+
+	// Опции сортировки
+	const sortOptions = generateSortOptions([
+		{ key: "name", label: "Название" },
+		{ key: "slug", label: "Slug" },
+	]);
 
 	if (isLoading || authLoading) {
 		return (
@@ -266,28 +302,21 @@ export default function CategoriesPage() {
 				</form>
 			</div>
 
-			{/* Поиск */}
-			<div className='flex mb-6'>
-				<div className='flex-1 relative'>
-					<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-						<Search className='h-5 w-5 text-gray-400' />
-					</div>
-					<input
-						type='text'
-						placeholder='Поиск по названию или описанию'
-						className='pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md'
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-					/>
-				</div>
-			</div>
-
-			<div className='flex justify-between items-center mb-6'>
-				<div className='flex items-center text-sm text-gray-500'>
-					<Folder className='mr-1 h-4 w-4' />
-					<span>Всего категорий: {filteredCategories.length}</span>
-				</div>
-			</div>
+			{/* Использование нового компонента для поиска и сортировки */}
+			<FilterSortPanel
+				onSearch={handleSearch}
+				onSortChange={handleSortChange}
+				searchPlaceholder='Поиск по названию или описанию'
+				sortOptions={sortOptions}
+				initialSearchTerm={searchTerm}
+				initialSortValue={sortOrder}
+				totalItems={filteredCategories.length}
+				itemsLabel='Всего категорий'
+				icon={<Folder className='h-4 w-4' />}
+				showSort={true}
+				showFilter={false}
+				showTotalItems={true}
+			/>
 
 			{/* Таблица категорий */}
 			<div className='bg-white rounded-md shadow overflow-hidden'>

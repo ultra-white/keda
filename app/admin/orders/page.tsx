@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { formatRu } from "@/lib/utils";
-import { CheckCircle, Clock, XCircle, Package, Truck, Search, Eye } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Package, Truck, Eye } from "lucide-react";
 import Button from "@/app/components/shared/Button";
 import { OrderStatus } from "@prisma/client";
+import FilterSortPanel from "@/app/components/admin/FilterSortPanel";
+import { sortItems, parseSortString, generateSortOptions } from "@/app/lib/admin/sortUtils";
 
 interface Order {
 	id: string;
@@ -39,6 +41,7 @@ export default function OrdersAdminPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filter, setFilter] = useState("all");
+	const [sortOrder, setSortOrder] = useState("");
 
 	const fetchOrders = async () => {
 		try {
@@ -82,8 +85,16 @@ export default function OrdersAdminPage() {
 			);
 		}
 
+		// Применяем сортировку
+		if (sortOrder) {
+			const [sortKey, sortDirection] = parseSortString(sortOrder);
+			if (sortKey) {
+				result = sortItems(result, sortKey, sortDirection);
+			}
+		}
+
 		setFilteredOrders(result);
-	}, [filter, searchTerm, orders]);
+	}, [filter, searchTerm, sortOrder, orders]);
 
 	const getStatusName = (status: OrderStatus) => {
 		switch (status) {
@@ -130,6 +141,35 @@ export default function OrdersAdminPage() {
 		}).format(date);
 	};
 
+	// Обработчики для компонента FilterSortPanel
+	const handleSearch = (term: string) => {
+		setSearchTerm(term);
+	};
+
+	const handleFilterChange = (status: string) => {
+		setFilter(status);
+	};
+
+	const handleSortChange = (sort: string) => {
+		setSortOrder(sort);
+	};
+
+	// Опции сортировки
+	const sortOptions = generateSortOptions([
+		{ key: "createdAt", label: "Дата" },
+		{ key: "total", label: "Сумма" },
+	]);
+
+	// Опции фильтра - строковые значения вместо перечисления для единообразия
+	const filterOptions = [
+		{ id: "all", name: "Все статусы" },
+		{ id: OrderStatus.PROCESSING, name: "В обработке" },
+		{ id: OrderStatus.ACCEPTED, name: "Подтверждены" },
+		{ id: OrderStatus.SHIPPED, name: "Доставляются" },
+		{ id: OrderStatus.DELIVERED, name: "Доставлены" },
+		{ id: OrderStatus.CANCELLED, name: "Отменены" },
+	];
+
 	if (isLoading) {
 		return (
 			<div>
@@ -159,41 +199,24 @@ export default function OrdersAdminPage() {
 		<div>
 			<h1 className='text-2xl font-bold mb-6'>Управление заказами</h1>
 
-			{/* Фильтры и поиск */}
-			<div className='flex flex-col md:flex-row gap-4 mb-6'>
-				<div className='flex-1 relative'>
-					<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-						<Search className='h-5 w-5 text-gray-400' />
-					</div>
-					<input
-						type='text'
-						placeholder='Поиск по ID заказа или email пользователя'
-						className='pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md'
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-					/>
-				</div>
-
-				<select
-					className='px-4 py-2 border border-gray-300 rounded-md'
-					value={filter}
-					onChange={(e) => setFilter(e.target.value)}
-				>
-					<option value='all'>Все статусы</option>
-					<option value={OrderStatus.PROCESSING}>В обработке</option>
-					<option value={OrderStatus.ACCEPTED}>Подтверждены</option>
-					<option value={OrderStatus.SHIPPED}>Доставляются</option>
-					<option value={OrderStatus.DELIVERED}>Доставлены</option>
-					<option value={OrderStatus.CANCELLED}>Отменены</option>
-				</select>
-			</div>
-
-			<div className='flex justify-between items-center mb-6'>
-				<div className='flex items-center text-sm text-gray-500'>
-					<Package className='mr-1 h-4 w-4' />
-					<span>Всего заказов: {filteredOrders.length}</span>
-				</div>
-			</div>
+			{/* Использование компонента FilterSortPanel */}
+			<FilterSortPanel
+				onSearch={handleSearch}
+				onFilterChange={handleFilterChange}
+				onSortChange={handleSortChange}
+				searchPlaceholder='Поиск по ID заказа или email пользователя'
+				filterOptions={filterOptions}
+				sortOptions={sortOptions}
+				initialSearchTerm={searchTerm}
+				initialFilterValue={filter}
+				initialSortValue={sortOrder}
+				totalItems={filteredOrders.length}
+				itemsLabel='Всего заказов'
+				icon={<Package className='h-4 w-4' />}
+				showSort={true}
+				showFilter={true}
+				showTotalItems={true}
+			/>
 
 			{/* Таблица заказов */}
 			{filteredOrders.length > 0 ? (
@@ -257,14 +280,9 @@ export default function OrdersAdminPage() {
 					</div>
 				</div>
 			) : (
-				<div className='bg-white p-6 rounded-md shadow-sm text-center'>
-					<Package className='mx-auto h-12 w-12 text-gray-400' />
-					<h3 className='mt-2 text-lg font-medium text-gray-900'>Заказы не найдены</h3>
-					<p className='mt-1 text-gray-500'>
-						{searchTerm || filter !== "all"
-							? "Попробуйте изменить параметры поиска или фильтры"
-							: "В системе пока нет заказов"}
-					</p>
+				<div className='bg-white rounded-lg shadow p-8 text-center'>
+					<p className='text-xl text-gray-600 mb-4'>Заказы не найдены</p>
+					<p className='text-gray-500'>Попробуйте изменить параметры поиска или фильтра</p>
 				</div>
 			)}
 		</div>

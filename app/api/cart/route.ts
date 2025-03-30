@@ -45,17 +45,20 @@ export async function GET() {
 		const cartItems = user.cart.items.map((item) => ({
 			product: {
 				...item.product,
+				// Преобразуем даты в строки для JSON
 				createdAt: item.product.createdAt.toISOString(),
 				updatedAt: item.product.updatedAt.toISOString(),
-				// Добавляем размер в продукт, если он есть
-				...(item.size ? { selectedSize: parseInt(item.size) || item.size } : {}),
+				// Добавляем размер в продукт
+				selectedSize: item.size, // Размер уже хранится как Int в БД
+				// Убедимся, что цены обрабатываются правильно
+				price: item.product.price, // Цена хранится как Int в БД
+				oldPrice: item.product.oldPrice, // Старая цена тоже хранится как Int (или null)
 			},
 			quantity: item.quantity,
 		}));
 
 		return NextResponse.json({ items: cartItems });
 	} catch (error) {
-		console.error("Ошибка при получении корзины:", error);
 		return NextResponse.json({ error: "Произошла ошибка при получении корзины" }, { status: 500 });
 	}
 }
@@ -69,92 +72,114 @@ export async function POST(req: NextRequest) {
 			return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 });
 		}
 
-		const data = await req.json();
+		let data;
+		try {
+			data = await req.json();
+		} catch (parseError) {
+			return NextResponse.json({ error: "Неверный формат JSON" }, { status: 400 });
+		}
+
+		if (!data || !data.items || !Array.isArray(data.items)) {
+			return NextResponse.json({ error: "Неверный формат данных: ожидается массив товаров" }, { status: 400 });
+		}
+
 		const { items } = data;
 
-		if (!Array.isArray(items)) {
-			return NextResponse.json({ error: "Неверный формат данных" }, { status: 400 });
-		}
-
-		// Получаем пользователя
-		const user = await prisma.user.findUnique({
-			where: { email: session.user.email },
-			include: {
-				cart: true,
-			},
-		});
-
-		let cartId: string | undefined = undefined;
-
-		if (!user) {
-			try {
-				// Создаем нового пользователя
-				const newUser = await prisma.user.create({
-					data: {
-						email: session.user.email!,
-						name: session.user.name || "Пользователь",
-					},
-				});
-
-				// Создаем новую корзину для пользователя
-				const newCart = await prisma.cart.create({
-					data: {
-						userId: newUser.id,
-					},
-				});
-
-				cartId = newCart.id;
-			} catch (error) {
-				console.error("Ошибка при создании пользователя:", error);
-				return NextResponse.json({ error: "Ошибка при создании пользователя" }, { status: 500 });
-			}
-		} else {
-			// Если у пользователя еще нет корзины, создаем ее
-			cartId = user.cart?.id;
-			if (!cartId) {
-				const newCart = await prisma.cart.create({
-					data: {
-						userId: user.id,
-					},
-				});
-				cartId = newCart.id;
-			} else {
-				// Удаляем все существующие товары в корзине
-				await prisma.cartItem.deleteMany({
-					where: {
-						cartId: cartId,
-					},
-				});
-			}
-		}
-
-		// Добавляем новые товары в корзину
-		const cartItems = [];
+		// Валидируем каждый элемент
 		for (const item of items) {
-			const { product, quantity } = item;
-
-			// Проверяем существование товара
-			const existingProduct = await prisma.product.findUnique({
-				where: { id: product.id },
-			});
-
-			if (existingProduct) {
-				const cartItem = await prisma.cartItem.create({
-					data: {
-						productId: product.id,
-						quantity: quantity,
-						cartId: cartId,
-						// Проверяем, поддерживает ли схема БД поле size
-						...(product.selectedSize ? { size: String(product.selectedSize) } : {}),
+			if (!item.product || !item.product.id || !item.quantity) {
+				return NextResponse.json(
+					{
+						error: "Некорректный формат элемента корзины: отсутствуют обязательные поля",
 					},
-				});
-				cartItems.push(cartItem);
+					{ status: 400 }
+				);
 			}
 		}
 
-		return NextResponse.json({ success: true, message: "Корзина успешно обновлена" });
+		// Используем одну транзакцию
+		try {
+			return await prisma.$transaction(
+				async (tx) => {
+					// 1. Получаем пользователя
+					const user = await tx.user.findUnique({
+						where: { email: session.user.email },
+						include: { cart: true },
+					});
+
+					if (!user) {
+						return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+					}
+
+					// 2. Получаем или создаем корзину
+					let cart = user.cart;
+					if (!cart) {
+						try {
+							cart = await tx.cart.create({
+								data: { userId: user.id },
+							});
+						} catch (createError) {
+							return NextResponse.json({ error: "Не удалось создать корзину" }, { status: 500 });
+						}
+					}
+
+					// 3. Удаляем все существующие товары
+					try {
+						await tx.cartItem.deleteMany({
+							where: { cartId: cart.id },
+						});
+					} catch (deleteError) {
+						return NextResponse.json({ error: "Не удалось очистить корзину" }, { status: 500 });
+					}
+
+					// 4. Добавляем новые товары по одному - так надежнее
+					for (const item of items) {
+						try {
+							// Проверяем, что товар существует
+							const productExists = await tx.product.findUnique({
+								where: { id: item.product.id },
+								select: { id: true },
+							});
+
+							if (!productExists) {
+								continue;
+							}
+
+							// Преобразуем значения полей в правильные типы
+							const quantity = parseInt(String(item.quantity), 10) || 1;
+
+							// Размер должен быть числом
+							let size = 40; // Значение по умолчанию
+							if (item.product.selectedSize !== undefined && item.product.selectedSize !== null) {
+								size = parseInt(String(item.product.selectedSize), 10) || 40;
+							}
+
+							// Создаем элемент корзины
+							await tx.cartItem.create({
+								data: {
+									cartId: cart.id,
+									productId: item.product.id,
+									quantity: quantity,
+									size: size,
+								},
+							});
+						} catch (itemError) {
+							// Продолжаем с другими товарами, не прерывая всю транзакцию
+						}
+					}
+
+					return NextResponse.json({ success: true, message: "Корзина успешно обновлена" });
+				},
+				{
+					// Опции транзакции для увеличения вероятности успеха
+					maxWait: 10000, // 10s максимальное время ожидания
+					timeout: 20000, // 20s таймаут транзакции
+				}
+			);
+		} catch (txError) {
+			return NextResponse.json({ error: "Ошибка при обновлении корзины" }, { status: 500 });
+		}
 	} catch (error) {
-		console.error("Ошибка при обновлении корзины:", error);
 		return NextResponse.json({ error: "Произошла ошибка при обновлении корзины" }, { status: 500 });
 	}
 }

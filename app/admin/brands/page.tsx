@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import Button from "@/app/components/shared/Button";
 import Input from "@/app/components/shared/Input";
 import { BookOpen, Edit2, Trash2, Search } from "lucide-react";
+import FilterSortPanel from "@/app/components/admin/FilterSortPanel";
+import { sortItems, parseSortString, generateSortOptions } from "@/app/lib/admin/sortUtils";
 
 interface Brand {
 	id: string;
@@ -15,6 +17,7 @@ interface Brand {
 
 export default function BrandsPage() {
 	const [brands, setBrands] = useState<Brand[]>([]);
+	const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
@@ -22,6 +25,7 @@ export default function BrandsPage() {
 	const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
 	const [name, setName] = useState("");
 	const [searchTerm, setSearchTerm] = useState("");
+	const [sortOrder, setSortOrder] = useState("");
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const { isAdmin, isLoading: authLoading } = useAuth();
@@ -53,6 +57,31 @@ export default function BrandsPage() {
 			}
 		}
 	}, [isAdmin, authLoading, router]);
+
+	// Фильтрация и сортировка брендов
+	useEffect(() => {
+		let results = brands;
+
+		// Фильтрация по поисковому запросу
+		if (searchTerm) {
+			const term = searchTerm.toLowerCase();
+			results = results.filter((brand) => {
+				const name = brand.name.toLowerCase();
+				const description = (brand.description || "").toLowerCase();
+				return name.includes(term) || description.includes(term);
+			});
+		}
+
+		// Сортировка
+		if (sortOrder) {
+			const [sortKey, sortDirection] = parseSortString(sortOrder);
+			if (sortKey) {
+				results = sortItems(results, sortKey, sortDirection);
+			}
+		}
+
+		setFilteredBrands(results);
+	}, [brands, searchTerm, sortOrder]);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -151,14 +180,17 @@ export default function BrandsPage() {
 		setFormError(null);
 	};
 
-	// Фильтрация брендов по поисковому запросу
-	const filteredBrands = brands.filter((brand) => {
-		const name = brand.name.toLowerCase();
-		const description = (brand.description || "").toLowerCase();
-		const term = searchTerm.toLowerCase();
+	// Обработчики для компонента FilterSortPanel
+	const handleSearch = (term: string) => {
+		setSearchTerm(term);
+	};
 
-		return name.includes(term) || description.includes(term);
-	});
+	const handleSortChange = (sort: string) => {
+		setSortOrder(sort);
+	};
+
+	// Опции сортировки
+	const sortOptions = generateSortOptions([{ key: "name", label: "Название" }]);
 
 	if (isLoading || authLoading) {
 		return (
@@ -233,28 +265,21 @@ export default function BrandsPage() {
 				</form>
 			</div>
 
-			{/* Поиск */}
-			<div className='flex mb-6'>
-				<div className='flex-1 relative'>
-					<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-						<Search className='h-5 w-5 text-gray-400' />
-					</div>
-					<input
-						type='text'
-						placeholder='Поиск по названию или описанию'
-						className='pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md'
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-					/>
-				</div>
-			</div>
-
-			<div className='flex justify-between items-center mb-6'>
-				<div className='flex items-center text-sm text-gray-500'>
-					<BookOpen className='mr-1 h-4 w-4' />
-					<span>Всего брендов: {filteredBrands.length}</span>
-				</div>
-			</div>
+			{/* Использование нового компонента для поиска и сортировки */}
+			<FilterSortPanel
+				onSearch={handleSearch}
+				onSortChange={handleSortChange}
+				searchPlaceholder='Поиск по названию'
+				sortOptions={sortOptions}
+				initialSearchTerm={searchTerm}
+				initialSortValue={sortOrder}
+				totalItems={filteredBrands.length}
+				itemsLabel='Всего брендов'
+				icon={<BookOpen className='h-4 w-4' />}
+				showSort={true}
+				showFilter={false}
+				showTotalItems={true}
+			/>
 
 			{/* Таблица брендов */}
 			<div className='bg-white rounded-md shadow overflow-hidden'>

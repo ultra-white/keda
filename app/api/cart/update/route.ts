@@ -41,9 +41,15 @@ export async function POST(req: NextRequest) {
 		// Находим товар в корзине
 		const cartItem = user.cart.items.find((item) => {
 			// Проверяем наличие свойства size в базе данных
-			if (selectedSize && item.size) {
-				return item.productId === productId && item.size === String(selectedSize);
-			} else if (!selectedSize && !item.size) {
+			if (selectedSize !== undefined && selectedSize !== null && item.size !== null) {
+				// Преобразуем оба значения в числа для корректного сравнения
+				const itemSize = Number(item.size);
+				const requestSize = Number(selectedSize);
+				return item.productId === productId && itemSize === requestSize;
+			} else if (
+				(selectedSize === undefined || selectedSize === null) &&
+				(item.size === undefined || item.size === null)
+			) {
 				return item.productId === productId;
 			}
 			return false;

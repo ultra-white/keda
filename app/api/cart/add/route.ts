@@ -53,7 +53,10 @@ export async function POST(req: NextRequest) {
 						productId: productId,
 						quantity: quantity,
 						cartId: newCart.id,
-						...(selectedSize ? { size: String(selectedSize) } : {}),
+						// Преобразуем размер в целое число перед сохранением
+						...(selectedSize !== undefined && selectedSize !== null
+							? { size: Number.isInteger(selectedSize) ? selectedSize : Math.round(Number(selectedSize)) }
+							: {}),
 					},
 				});
 
@@ -107,8 +110,10 @@ export async function POST(req: NextRequest) {
 					productId: productId,
 					quantity: quantity,
 					cartId: cartId,
-					// Проверяем, что поле size существует в схеме, прежде чем пытаться его использовать
-					...(selectedSize ? { size: String(selectedSize) } : {}),
+					// Преобразуем размер в целое число перед сохранением
+					...(selectedSize !== undefined && selectedSize !== null
+						? { size: Number.isInteger(selectedSize) ? selectedSize : Math.round(Number(selectedSize)) }
+						: {}),
 				},
 			});
 		}

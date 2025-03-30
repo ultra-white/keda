@@ -54,12 +54,25 @@ export async function POST(request: NextRequest) {
 								selectedSize?: number | null;
 							};
 							quantity: number;
-						}) => ({
-							productId: item.product.id,
-							price: item.product.price,
-							quantity: item.quantity,
-							size: item.product.selectedSize ? String(item.product.selectedSize) : null,
-						})
+						}) => {
+							// Преобразуем размер в число для соответствия схеме
+							let sizeValue = 40; // Значение по умолчанию
+
+							if (item.product.selectedSize !== undefined && item.product.selectedSize !== null) {
+								// Пытаемся получить число
+								const size = Number(item.product.selectedSize);
+								if (!isNaN(size)) {
+									sizeValue = Math.round(size);
+								}
+							}
+
+							return {
+								productId: item.product.id,
+								price: item.product.price,
+								quantity: item.quantity,
+								size: sizeValue, // Теперь передаем число, а не строку
+							};
+						}
 					),
 				},
 			},
@@ -73,7 +86,7 @@ export async function POST(request: NextRequest) {
 			headers: { "Content-Type": "application/json" },
 		});
 	} catch (error) {
-		console.error("Ошибка при создании заказа:", error);
+		// Только минимально необходимое сообщение об ошибке
 		return new NextResponse(JSON.stringify({ error: "Внутренняя ошибка сервера" }), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },

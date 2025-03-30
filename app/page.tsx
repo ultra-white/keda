@@ -57,10 +57,12 @@ async function getCategories() {
 
 async function getFeaturedProducts() {
 	try {
-		// Получаем избранные товары (которые можно выделить на главной)
+		// Получаем товары со скидкой (где указан oldPrice) и последние добавленные товары
 		const featuredProducts = await prisma.product.findMany({
 			where: {
-				OR: [{ isNew: true }, { isOnSale: true }],
+				OR: [
+					{ oldPrice: { not: null } }, // Товары со скидкой имеют oldPrice
+				],
 			},
 			include: {
 				category: true,
@@ -69,6 +71,25 @@ async function getFeaturedProducts() {
 			orderBy: { createdAt: "desc" },
 			take: 5, // Ограничим количество товаров для карусели
 		});
+
+		// Если нет товаров со скидкой, просто берем последние добавленные
+		if (featuredProducts.length === 0) {
+			const newProducts = await prisma.product.findMany({
+				include: {
+					category: true,
+					brand: true,
+				},
+				orderBy: { createdAt: "desc" },
+				take: 5,
+			});
+
+			return newProducts.map((product) => ({
+				...product,
+				name: `${product.brand?.name || ""} ${product.model || ""}`.trim(),
+				createdAt: product.createdAt.toISOString(),
+				updatedAt: product.updatedAt.toISOString(),
+			})) as Product[];
+		}
 
 		return featuredProducts.map((product) => ({
 			...product,

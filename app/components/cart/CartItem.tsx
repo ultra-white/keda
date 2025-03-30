@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/app/contexts/CartContext";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 
 // Создаем тип, совместимый с Product из контекста корзины
 type CartProductType = {
@@ -28,19 +28,23 @@ interface CartItemProps {
 	quantity: number;
 }
 
-export default function CartItem({ product, quantity }: CartItemProps) {
+function CartItem({ product, quantity }: CartItemProps) {
 	const { updateQuantity, removeItem } = useCart();
 	const [imageError, setImageError] = useState(false);
 	const [localQuantity, setLocalQuantity] = useState(quantity);
 	const [isUpdating, setIsUpdating] = useState(false);
+	const prevQuantityRef = useRef(quantity);
 
-	// Синхронизация локального состояния с пропсами
+	// Синхронизация локального состояния с пропсами только если есть реальные изменения
 	useEffect(() => {
-		setLocalQuantity(quantity);
+		if (prevQuantityRef.current !== quantity) {
+			setLocalQuantity(quantity);
+			prevQuantityRef.current = quantity;
+		}
 	}, [quantity]);
 
 	// Проверка является ли строка корректным URL
-	const isValidUrl = (urlString: string): boolean => {
+	const isValidUrl = useCallback((urlString: string): boolean => {
 		try {
 			if (!urlString || typeof urlString !== "string") return false;
 			// Если URL не начинается с http:// или https://, считаем его невалидным
@@ -52,75 +56,96 @@ export default function CartItem({ product, quantity }: CartItemProps) {
 		} catch {
 			return false;
 		}
-	};
+	}, []);
 
 	// Форматирование цены
-	const formatPrice = (price: number) => {
+	const formatPrice = useCallback((price: number) => {
 		return new Intl.NumberFormat("ru-RU", {
 			style: "currency",
 			currency: "RUB",
 			minimumFractionDigits: 0,
 		}).format(price);
-	};
+	}, []);
 
 	// Увеличение количества
-	const increaseQuantity = (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
+	const increaseQuantity = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
 
-		if (isUpdating || localQuantity >= 100) return;
+			if (isUpdating || localQuantity >= 100) return;
 
-		setIsUpdating(true);
-		setLocalQuantity((prev) => Math.min(prev + 1, 100));
+			// Предотвращаем повторную отправку, если локальное количество уже обновлено
+			if (localQuantity === prevQuantityRef.current + 1) return;
 
-		try {
-			updateQuantity(product.id, localQuantity + 1, product.selectedSize);
-		} finally {
-			setIsUpdating(false);
-		}
-	};
+			setIsUpdating(true);
+			const newQuantity = Math.min(localQuantity + 1, 100);
+
+			// Обновляем локальное состояние и референс
+			setLocalQuantity(newQuantity);
+			prevQuantityRef.current = newQuantity;
+
+			try {
+				updateQuantity(product.id, newQuantity, product.selectedSize);
+			} finally {
+				setIsUpdating(false);
+			}
+		},
+		[isUpdating, localQuantity, product.id, product.selectedSize, updateQuantity]
+	);
 
 	// Уменьшение количества
-	const decreaseQuantity = (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
+	const decreaseQuantity = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
 
-		if (isUpdating) return;
+			if (isUpdating) return;
 
-		setIsUpdating(true);
+			// Предотвращаем повторную отправку, если локальное количество уже обновлено
+			if (localQuantity <= 1 || localQuantity === prevQuantityRef.current - 1) return;
 
-		try {
-			if (localQuantity <= 1) {
-				// Если количество равно 1, то удаляем товар
-				removeItem(product.id, product.selectedSize);
-			} else {
-				// Иначе уменьшаем количество
-				setLocalQuantity((prev) => prev - 1);
-				updateQuantity(product.id, localQuantity - 1, product.selectedSize);
+			setIsUpdating(true);
+
+			try {
+				if (localQuantity <= 1) {
+					// Если количество равно 1, то удаляем товар
+					removeItem(product.id, product.selectedSize);
+				} else {
+					const newQuantity = localQuantity - 1;
+					// Обновляем локальное состояние и референс
+					setLocalQuantity(newQuantity);
+					prevQuantityRef.current = newQuantity;
+					updateQuantity(product.id, newQuantity, product.selectedSize);
+				}
+			} finally {
+				setIsUpdating(false);
 			}
-		} finally {
-			setIsUpdating(false);
-		}
-	};
+		},
+		[isUpdating, localQuantity, product.id, product.selectedSize, removeItem, updateQuantity]
+	);
 
 	// Удаление товара
-	const handleRemove = (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
+	const handleRemove = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			e.stopPropagation();
 
-		if (isUpdating) return;
+			if (isUpdating) return;
 
-		setIsUpdating(true);
+			setIsUpdating(true);
 
-		try {
-			removeItem(product.id, product.selectedSize);
-		} finally {
-			setIsUpdating(false);
-		}
-	};
+			try {
+				removeItem(product.id, product.selectedSize);
+			} finally {
+				setIsUpdating(false);
+			}
+		},
+		[isUpdating, product.id, product.selectedSize, removeItem]
+	);
 
 	// Обработка ручного ввода количества
-	const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
 
 		// Разрешаем пустое значение при вводе (пользователь может стирать и начинать ввод заново)
@@ -141,10 +166,10 @@ export default function CartItem({ product, quantity }: CartItemProps) {
 
 		// Обновляем локальное значение без отправки запроса на сервер (запрос отправится при потере фокуса)
 		setLocalQuantity(limitedValue);
-	};
+	}, []);
 
 	// Обработка потери фокуса и нажатия Enter
-	const handleBlur = () => {
+	const handleBlur = useCallback(() => {
 		// Если значение не изменилось, не делаем запрос
 		if (localQuantity === quantity) {
 			return;
@@ -170,6 +195,9 @@ export default function CartItem({ product, quantity }: CartItemProps) {
 			setLocalQuantity(limitedValue);
 		}
 
+		// Обновляем референс и количество
+		prevQuantityRef.current = limitedValue;
+
 		// Обновляем количество
 		setIsUpdating(true);
 		try {
@@ -177,10 +205,10 @@ export default function CartItem({ product, quantity }: CartItemProps) {
 		} finally {
 			setIsUpdating(false);
 		}
-	};
+	}, [localQuantity, product.id, product.selectedSize, quantity, removeItem, updateQuantity]);
 
 	// Обработка нажатия клавиши Enter
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
 		// Блокируем ввод ненужных символов (e, +, -, .)
 		if (e.key === "e" || e.key === "+" || e.key === "-" || e.key === ".") {
 			e.preventDefault();
@@ -191,14 +219,14 @@ export default function CartItem({ product, quantity }: CartItemProps) {
 		if (e.key === "Enter") {
 			(e.target as HTMLInputElement).blur();
 		}
-	};
+	}, []);
 
 	// Расчет процента скидки
-	const calculateDiscount = (): number | null => {
+	const calculateDiscount = useCallback((): number | null => {
 		if (!product.oldPrice) return null;
 		const discount = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
 		return discount > 0 ? discount : null;
-	};
+	}, [product.oldPrice, product.price]);
 
 	const discount = calculateDiscount();
 
@@ -314,3 +342,5 @@ export default function CartItem({ product, quantity }: CartItemProps) {
 		</div>
 	);
 }
+
+export default memo(CartItem);

@@ -7,6 +7,8 @@ import Button from "@/app/components/shared/Button";
 import Input from "@/app/components/shared/Input";
 import Image from "next/image";
 import { ShoppingBag, Search, Edit2, Trash2 } from "lucide-react";
+import FilterSortPanel from "@/app/components/admin/FilterSortPanel";
+import { sortItems, parseSortString, generateSortOptions } from "@/app/lib/admin/sortUtils";
 
 interface Product {
 	id: string;
@@ -53,6 +55,7 @@ export default function ProductsPage() {
 	const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState("");
+	const [sortOrder, setSortOrder] = useState("");
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	// Поля формы
@@ -118,7 +121,7 @@ export default function ProductsPage() {
 		}
 	}, [isAdmin, authLoading, router]);
 
-	// Фильтрация товаров при изменении поисковой строки или фильтра категорий
+	// Фильтрация и сортировка товаров при изменении поисковой строки, фильтра категорий или сортировки
 	useEffect(() => {
 		let results = products;
 
@@ -140,8 +143,16 @@ export default function ProductsPage() {
 			results = results.filter((product) => product.categoryId === categoryFilter);
 		}
 
+		// Сортировка, если задан sortOrder
+		if (sortOrder) {
+			const [sortKey, sortDirection] = parseSortString(sortOrder);
+			if (sortKey) {
+				results = sortItems(results, sortKey, sortDirection);
+			}
+		}
+
 		setFilteredProducts(results);
-	}, [products, searchTerm, categoryFilter]);
+	}, [products, searchTerm, categoryFilter, sortOrder]);
 
 	// Обработка отправки формы
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -313,6 +324,7 @@ export default function ProductsPage() {
 	const resetFilters = () => {
 		setSearchTerm("");
 		setCategoryFilter("");
+		setSortOrder("");
 	};
 
 	// Проверка является ли строка корректным URL
@@ -328,6 +340,27 @@ export default function ProductsPage() {
 			return false;
 		}
 	};
+
+	// Обработчики для компонента FilterSortPanel
+	const handleSearch = (term: string) => {
+		setSearchTerm(term);
+	};
+
+	const handleFilterChange = (categoryId: string) => {
+		setCategoryFilter(categoryId);
+	};
+
+	const handleSortChange = (sort: string) => {
+		setSortOrder(sort);
+	};
+
+	// Опции сортировки
+	const sortOptions = generateSortOptions([
+		{ key: "price", label: "Цена" },
+		{ key: "brandName", label: "Бренд" },
+		{ key: "model", label: "Модель" },
+		{ key: "createdAt", label: "Дата создания" },
+	]);
 
 	if (isLoading || authLoading) {
 		return (
@@ -559,47 +592,24 @@ export default function ProductsPage() {
 				</form>
 			</div>
 
-			{/* Поиск и фильтры */}
-			<div className='flex flex-col md:flex-row gap-4 mb-6'>
-				<div className='flex-1 relative'>
-					<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-						<Search className='h-5 w-5 text-gray-400' />
-					</div>
-					<input
-						type='text'
-						placeholder='Поиск по названию или описанию'
-						className='pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md'
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-					/>
-				</div>
-
-				<select
-					className='px-4 py-2 border border-gray-300 rounded-md'
-					value={categoryFilter}
-					onChange={(e) => setCategoryFilter(e.target.value)}
-				>
-					<option value=''>Все категории</option>
-					{categories.map((category) => (
-						<option key={category.id} value={category.id}>
-							{category.name}
-						</option>
-					))}
-				</select>
-
-				{(searchTerm || categoryFilter) && (
-					<Button variant='outline' size='sm' onClick={resetFilters}>
-						Сбросить фильтры
-					</Button>
-				)}
-			</div>
-
-			<div className='flex justify-between items-center mb-6'>
-				<div className='flex items-center text-sm text-gray-500'>
-					<ShoppingBag className='mr-1 h-4 w-4' />
-					<span>Всего товаров: {filteredProducts.length}</span>
-				</div>
-			</div>
+			{/* Использование нового компонента для поиска и сортировки */}
+			<FilterSortPanel
+				onSearch={handleSearch}
+				onFilterChange={handleFilterChange}
+				onSortChange={handleSortChange}
+				searchPlaceholder='Поиск по названию или описанию'
+				filterOptions={categories}
+				sortOptions={sortOptions}
+				initialSearchTerm={searchTerm}
+				initialFilterValue={categoryFilter}
+				initialSortValue={sortOrder}
+				totalItems={filteredProducts.length}
+				itemsLabel='Всего товаров'
+				icon={<ShoppingBag className='h-4 w-4' />}
+				showSort={true}
+				showFilter={true}
+				showTotalItems={true}
+			/>
 
 			{/* Таблица товаров */}
 			<div className='bg-white rounded-md shadow overflow-hidden'>

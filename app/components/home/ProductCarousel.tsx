@@ -126,11 +126,10 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
 
 										{/* Метки в углу изображения */}
 										<div className='absolute top-2 left-2 flex flex-col gap-2'>
-											{product.isNew && (
-												<span className='bg-blue-500 text-white text-xs px-2 py-1 rounded'>Новинка</span>
-											)}
-											{product.isOnSale && (
-												<span className='bg-red-500 text-white text-xs px-2 py-1 rounded'>Скидка</span>
+											{product.oldPrice && product.oldPrice > product.price && (
+												<span className='bg-red-500 text-white text-xs px-2 py-1 rounded'>
+													Скидка {Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}%
+												</span>
 											)}
 										</div>
 									</div>

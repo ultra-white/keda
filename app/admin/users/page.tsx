@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { User, Trash2, CheckCircle, XCircle, Search } from "lucide-react";
 import Button from "@/app/components/shared/Button";
+import FilterSortPanel from "@/app/components/admin/FilterSortPanel";
+import { sortItems, parseSortString, generateSortOptions } from "@/app/lib/admin/sortUtils";
 
 interface UserType {
 	id: string;
@@ -18,6 +20,7 @@ export default function UsersPage() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
+	const [sortOrder, setSortOrder] = useState("");
 
 	useEffect(() => {
 		fetchUsers();
@@ -25,18 +28,31 @@ export default function UsersPage() {
 
 	useEffect(() => {
 		if (users) {
+			let filtered = users;
+
 			// Фильтрация пользователей при изменении поисковой строки
-			const filtered = users.filter((user) => {
-				const userName = user.name || "";
-				return (
-					userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-					user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-					user.role.toLowerCase().includes(searchTerm.toLowerCase())
-				);
-			});
+			if (searchTerm) {
+				filtered = users.filter((user) => {
+					const userName = user.name || "";
+					return (
+						userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+						user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+						user.role.toLowerCase().includes(searchTerm.toLowerCase())
+					);
+				});
+			}
+
+			// Сортировка пользователей
+			if (sortOrder) {
+				const [sortKey, sortDirection] = parseSortString(sortOrder);
+				if (sortKey) {
+					filtered = sortItems(filtered, sortKey, sortDirection);
+				}
+			}
+
 			setFilteredUsers(filtered);
 		}
-	}, [searchTerm, users]);
+	}, [searchTerm, sortOrder, users]);
 
 	const fetchUsers = async () => {
 		setIsLoading(true);
@@ -113,6 +129,23 @@ export default function UsersPage() {
 		}).format(date);
 	};
 
+	// Обработчики для компонента FilterSortPanel
+	const handleSearch = (term: string) => {
+		setSearchTerm(term);
+	};
+
+	const handleSortChange = (sort: string) => {
+		setSortOrder(sort);
+	};
+
+	// Опции сортировки
+	const sortOptions = generateSortOptions([
+		{ key: "name", label: "Имя" },
+		{ key: "email", label: "Email" },
+		{ key: "role", label: "Роль" },
+		{ key: "createdAt", label: "Дата регистрации" },
+	]);
+
 	if (isLoading) {
 		return (
 			<div className='flex justify-center items-center'>
@@ -136,28 +169,21 @@ export default function UsersPage() {
 		<div>
 			<h1 className='text-2xl font-bold mb-6'>Управление пользователями</h1>
 
-			{/* Поиск */}
-			<div className='flex mb-6'>
-				<div className='flex-1 relative'>
-					<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-						<Search className='h-5 w-5 text-gray-400' />
-					</div>
-					<input
-						type='text'
-						placeholder='Поиск по имени, email или роли'
-						className='pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md'
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-					/>
-				</div>
-			</div>
-
-			<div className='flex justify-between items-center mb-6'>
-				<div className='flex items-center text-sm text-gray-500'>
-					<User className='mr-1 h-4 w-4' />
-					<span>Всего пользователей: {filteredUsers.length}</span>
-				</div>
-			</div>
+			{/* Использование компонента FilterSortPanel */}
+			<FilterSortPanel
+				onSearch={handleSearch}
+				onSortChange={handleSortChange}
+				searchPlaceholder='Поиск по имени, email или роли'
+				sortOptions={sortOptions}
+				initialSearchTerm={searchTerm}
+				initialSortValue={sortOrder}
+				totalItems={filteredUsers.length}
+				itemsLabel='Всего пользователей'
+				icon={<User className='h-4 w-4' />}
+				showSort={true}
+				showFilter={false}
+				showTotalItems={true}
+			/>
 
 			<div className='bg-white rounded-md shadow overflow-hidden'>
 				<div className='overflow-x-auto'>
