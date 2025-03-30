@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, User, ArrowRight, Search, Menu, X, Package } from "lucide-react";
+import { ShoppingCart, User, ArrowRight, Search, Menu, X } from "lucide-react";
 import Button from "./shared/Button";
 import Input from "./shared/Input";
 import { useState, useEffect, useRef } from "react";
@@ -10,17 +10,9 @@ import { useSession } from "next-auth/react";
 import { useCart } from "../contexts/CartContext";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-// Интерфейс для категории
-interface Category {
-	id: string;
-	name: string;
-	slug: string;
-}
-
 export default function Header() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [categories, setCategories] = useState<Category[]>([]);
 	const { data: session } = useSession();
 	const { itemCount } = useCart();
 	const menuRef = useRef<HTMLDivElement>(null);
@@ -28,23 +20,6 @@ export default function Header() {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-
-	// Получаем список категорий при загрузке компонента
-	useEffect(() => {
-		const fetchCategories = async () => {
-			try {
-				const response = await fetch("/api/categories");
-				if (response.ok) {
-					const data = await response.json();
-					setCategories(data);
-				}
-			} catch (error) {
-				console.error("Ошибка загрузки категорий:", error);
-			}
-		};
-
-		fetchCategories();
-	}, []);
 
 	// При загрузке компонента берем параметр search из URL если он есть
 	useEffect(() => {
@@ -90,13 +65,6 @@ export default function Header() {
 		closeMenu();
 	};
 
-	// Обработчик перехода к категории - больше не нужен, будем использовать напрямую в href
-	const getCategoryUrl = (categorySlug: string) => {
-		const params = new URLSearchParams();
-		params.set("category", categorySlug);
-		return `/products?${params.toString()}`;
-	};
-
 	// Обработчик клика вне меню
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -134,17 +102,6 @@ export default function Header() {
 		closeMenu();
 	};
 
-	// Получаем основные категории для меню (предполагаем, что они есть в загруженных категориях)
-	const menCategory = categories.find(
-		(cat) => cat.slug === "muzhskie" || cat.slug === "men" || cat.name.toLowerCase().includes("муж")
-	);
-	const womenCategory = categories.find(
-		(cat) => cat.slug === "zhenskie" || cat.slug === "women" || cat.name.toLowerCase().includes("жен")
-	);
-	const kidsCategory = categories.find(
-		(cat) => cat.slug === "detskie" || cat.slug === "kids" || cat.name.toLowerCase().includes("дет")
-	);
-
 	return (
 		<>
 			<header className='h-[75px] fixed top-0 left-0 w-full bg-white z-50'>
@@ -163,21 +120,15 @@ export default function Header() {
 							</Link>
 
 							<div className='items-center space-x-6 text-md lg:flex hidden'>
-								{menCategory && (
-									<Link href={getCategoryUrl(menCategory.slug)} className='hover:text-gray-600'>
-										Мужские
-									</Link>
-								)}
-								{womenCategory && (
-									<Link href={getCategoryUrl(womenCategory.slug)} className='hover:text-gray-600'>
-										Женские
-									</Link>
-								)}
-								{kidsCategory && (
-									<Link href={getCategoryUrl(kidsCategory.slug)} className='hover:text-gray-600'>
-										Детские
-									</Link>
-								)}
+								<Link href='/products?category=men' className='hover:text-gray-600'>
+									Мужские
+								</Link>
+								<Link href='/products?category=women' className='hover:text-gray-600'>
+									Женские
+								</Link>
+								<Link href='/products?category=kids' className='hover:text-gray-600'>
+									Детские
+								</Link>
 							</div>
 						</div>
 
@@ -250,9 +201,38 @@ export default function Header() {
 					boxShadow: isMenuOpen ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" : "none",
 				}}
 			>
-				<div className='container mx-auto'>
-					<div className='flex flex-col py-4 px-[25px] lg:px-[50px] space-y-4'>
-						<form onSubmit={handleSearch} className='items-center space-x-2.5 h-9 mb-4 flex md:hidden'>
+				<div className='container mx-auto px-6 py-4'>
+					{/* Ссылки на категории */}
+					<div className='space-y-4 mb-6 border-b border-gray-100 pb-6'>
+						<h3 className='font-medium text-gray-500 text-sm uppercase'>Категории</h3>
+						<div className='space-y-2'>
+							<Link
+								href='/products?category=men'
+								className='block py-2 px-3 hover:bg-gray-50 rounded transition'
+								onClick={handleLinkClick}
+							>
+								Мужские
+							</Link>
+							<Link
+								href='/products?category=women'
+								className='block py-2 px-3 hover:bg-gray-50 rounded transition'
+								onClick={handleLinkClick}
+							>
+								Женские
+							</Link>
+							<Link
+								href='/products?category=children'
+								className='block py-2 px-3 hover:bg-gray-50 rounded transition'
+								onClick={handleLinkClick}
+							>
+								Детские
+							</Link>
+						</div>
+					</div>
+
+					{/* Форма поиска для мобильного меню */}
+					<div className='mb-6'>
+						<form onSubmit={handleSearch} className='flex items-center space-x-2 h-10'>
 							<Input
 								type='text'
 								placeholder='Поиск товаров...'
@@ -264,71 +244,38 @@ export default function Header() {
 								<Search className='w-6 h-6' />
 							</Button>
 						</form>
+					</div>
 
-						{/* Категории в мобильном меню */}
-						<div className='border-t border-b border-gray-100 py-3 space-y-3'>
-							{menCategory && (
-								<Link
-									href={getCategoryUrl(menCategory.slug)}
-									className='flex w-full items-center p-2 hover:bg-gray-100 rounded-md'
-									onClick={handleLinkClick}
-								>
-									Мужские
-								</Link>
-							)}
-							{womenCategory && (
-								<Link
-									href={getCategoryUrl(womenCategory.slug)}
-									className='flex w-full items-center p-2 hover:bg-gray-100 rounded-md'
-									onClick={handleLinkClick}
-								>
-									Женские
-								</Link>
-							)}
-							{kidsCategory && (
-								<Link
-									href={getCategoryUrl(kidsCategory.slug)}
-									className='flex w-full items-center p-2 hover:bg-gray-100 rounded-md'
-									onClick={handleLinkClick}
-								>
-									Детские
-								</Link>
-							)}
-						</div>
-
-						<Link
-							href={session ? "/profile" : "/auth/signin"}
-							className='flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md'
-							onClick={handleLinkClick}
-						>
-							<User className='w-6 h-6' />
-							<span>{session ? "Профиль" : "Войти"}</span>
-						</Link>
-
-						{session && (
-							<Link
-								href='/profile/orders'
-								className='flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md'
-								onClick={handleLinkClick}
-							>
-								<Package className='w-6 h-6' />
-								<span>Мои заказы</span>
-							</Link>
-						)}
-
+					{/* Ссылки пользователя */}
+					<div className='flex flex-col space-y-4'>
 						<Link
 							href='/cart'
-							className='flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md'
+							className='flex items-center space-x-3 py-2 px-3 hover:bg-gray-50 rounded transition'
 							onClick={handleLinkClick}
 						>
-							<div className='relative w-6 h-6'>
-								<ShoppingCart className='w-6 h-6' />
-								<span className='absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center'>
-									{itemCount || 0}
-								</span>
-							</div>
-							<span>Корзина</span>
+							<ShoppingCart className='w-5 h-5' />
+							<span className='font-medium'>Корзина ({itemCount || 0})</span>
 						</Link>
+
+						{session ? (
+							<Link
+								href='/profile'
+								className='flex items-center space-x-3 py-2 px-3 hover:bg-gray-50 rounded transition'
+								onClick={handleLinkClick}
+							>
+								<User className='w-5 h-5' />
+								<span className='font-medium'>Профиль</span>
+							</Link>
+						) : (
+							<Link
+								href='/auth/signin'
+								className='flex items-center space-x-3 py-2 px-3 hover:bg-gray-50 rounded transition'
+								onClick={handleLinkClick}
+							>
+								<User className='w-5 h-5' />
+								<span className='font-medium'>Войти</span>
+							</Link>
+						)}
 					</div>
 				</div>
 			</div>

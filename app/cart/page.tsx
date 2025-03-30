@@ -4,11 +4,12 @@ import { useCart } from "@/app/contexts/CartContext";
 import CartItem from "@/app/components/cart/CartItem";
 import Button from "@/app/components/shared/Button";
 import Link from "next/link";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import EmptyCart from "@/app/components/cart/EmptyCart";
 
 export default function CartPage() {
 	const { items, totalPrice, clearCart, itemCount, totalPriceWithoutDiscount, totalDiscount, isLoading } = useCart();
@@ -84,22 +85,7 @@ export default function CartPage() {
 	}
 
 	if (items.length === 0) {
-		return (
-			<div className='container mx-auto px-[25px] lg:px-[50px] py-16'>
-				<div className='max-w-3xl mx-auto text-center'>
-					<div className='mb-8'>
-						<ShoppingCart size={80} className='mx-auto text-gray-300' />
-					</div>
-					<h1 className='text-3xl font-bold mb-4'>Ваша корзина пуста</h1>
-					<p className='text-gray-600 mb-8'>
-						Похоже, вы еще не добавили товары в корзину. Перейдите в каталог, чтобы найти что-нибудь интересное!
-					</p>
-					<Link href='/products'>
-						<Button size='lg'>Перейти к товарам</Button>
-					</Link>
-				</div>
-			</div>
-		);
+		return <EmptyCart />;
 	}
 
 	return (

@@ -1,12 +1,12 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/shared/Button";
 import Input from "@/app/components/shared/Input";
 import Link from "next/link";
-import { ShieldCheck, LogOut, Package } from "lucide-react";
+import { ShieldCheck, LogOut, Package, User } from "lucide-react";
 import OrdersList from "@/app/components/profile/OrdersList";
 
 // Расширяем типы Next.js для поддержки свойства role
@@ -20,27 +20,25 @@ declare module "next-auth" {
 	}
 }
 
-const ProfilePage = memo(function ProfilePage() {
+export default function ProfilePage() {
 	const { data: session, status, update } = useSession();
 	const router = useRouter();
 	const [isEditing, setIsEditing] = useState(false);
 	const [name, setName] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [displayName, setDisplayName] = useState("");
 
 	// Проверка, является ли пользователь администратором
 	const isAdmin = session?.user?.role === "ADMIN";
 
-	// Обновляем локальное состояние только при первой загрузке
+	// Обновляем имя пользователя при авторизации
 	useEffect(() => {
 		if (status === "unauthenticated") {
-			router.push("/login");
-		} else if (status === "authenticated" && session?.user?.name && !displayName) {
+			router.push("/auth/signin");
+		} else if (status === "authenticated" && session?.user?.name) {
 			setName(session.user.name);
-			setDisplayName(session.user.name);
 		}
-	}, [status, router, displayName, session?.user?.name]);
+	}, [status, router, session?.user?.name]);
 
 	// Показываем загрузку, пока проверяем сессию
 	if (status === "loading") {
@@ -56,7 +54,7 @@ const ProfilePage = memo(function ProfilePage() {
 		return null;
 	}
 
-	const handleUpdateProfile = async (e: React.FormEvent) => {
+	const handleUpdateProfile = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsLoading(true);
 		setError(null);
@@ -64,9 +62,7 @@ const ProfilePage = memo(function ProfilePage() {
 		try {
 			const res = await fetch("/api/profile/update", {
 				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name }),
 			});
 
@@ -76,11 +72,8 @@ const ProfilePage = memo(function ProfilePage() {
 				throw new Error(data.error || "Ошибка при обновлении профиля");
 			}
 
-			// Обновляем локальное состояние
-			setDisplayName(name);
 			setIsEditing(false);
-
-			// Обновляем сессию в фоновом режиме без ожидания завершения
+			// Обновляем сессию
 			void update();
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Произошла ошибка");
@@ -89,28 +82,27 @@ const ProfilePage = memo(function ProfilePage() {
 		}
 	};
 
-	const handleSignOut = async () => {
-		await signOut({
-			redirect: true,
-			callbackUrl: "/",
-		});
+	const handleCancel = () => {
+		setIsEditing(false);
+		setName(session.user?.name || "");
+		setError(null);
 	};
 
 	return (
-		<div className='container mx-auto px-[25px] lg:px-[50px] py-12'>
+		<div className='px-[25px] lg:px-[50px] py-12 container mx-auto'>
 			{/* Заголовок и кнопки */}
-			<div className='flex justify-between w-full items-center mb-8'>
+			<div className='flex sm:flex-row flex-col justify-between items-center mb-6 gap-4'>
 				<h1 className='text-3xl font-bold'>Мой профиль</h1>
-				<div className='flex md:space-x-4 flex-col md:flex-row md:w-auto w-min'>
+				<div className='flex items-center space-x-4'>
 					{isAdmin && (
-						<Link href='/admin' className='flex items-center text-black hover:text-gray-700 focus:outline-none'>
+						<Link href='/admin' className='flex items-center text-black hover:text-gray-700'>
 							<ShieldCheck className='h-5 w-5 mr-2' />
 							Панель управления
 						</Link>
 					)}
 					<button
-						onClick={handleSignOut}
-						className='flex items-center text-red-500 hover:text-red-700 focus:outline-none'
+						onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
+						className='flex items-center text-red-500 hover:text-red-700'
 					>
 						<LogOut className='h-5 w-5 mr-2' />
 						Выйти
@@ -118,11 +110,14 @@ const ProfilePage = memo(function ProfilePage() {
 				</div>
 			</div>
 
-			<div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+			<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
 				{/* Личные данные */}
 				<div className='lg:col-span-1'>
 					<div className='bg-white p-6 rounded-lg shadow-md'>
-						<h2 className='text-xl font-bold mb-4'>Личные данные</h2>
+						<h2 className='text-xl font-bold mb-4 flex items-center'>
+							<User className='h-5 w-5 mr-2' />
+							Личные данные
+						</h2>
 						{isEditing ? (
 							<form onSubmit={handleUpdateProfile}>
 								<div className='mb-4'>
@@ -142,20 +137,12 @@ const ProfilePage = memo(function ProfilePage() {
 									<label htmlFor='email' className='block text-gray-700 mb-1'>
 										Email
 									</label>
-									<Input id='email' type='email' value={session?.user?.email || ""} disabled className='bg-gray-100' />
+									<Input id='email' type='email' value={session.user?.email || ""} disabled className='bg-gray-100' />
 									<p className='text-xs text-gray-500 mt-1'>Email нельзя изменить</p>
 								</div>
 								{error && <p className='text-red-500 text-sm mb-4'>{error}</p>}
 								<div className='flex justify-end space-x-3'>
-									<Button
-										type='button'
-										variant='outline'
-										onClick={() => {
-											setIsEditing(false);
-											setName(displayName);
-											setError(null);
-										}}
-									>
+									<Button type='button' variant='outline' onClick={handleCancel}>
 										Отменить
 									</Button>
 									<Button type='submit' isLoading={isLoading}>
@@ -165,13 +152,13 @@ const ProfilePage = memo(function ProfilePage() {
 							</form>
 						) : (
 							<div>
-								<div className='mb-6'>
+								<div className='mb-4'>
 									<p className='text-gray-600 mb-1'>Имя</p>
-									<p className='font-semibold'>{displayName}</p>
+									<p className='font-semibold'>{session.user?.name}</p>
 								</div>
-								<div className='mb-6'>
+								<div className='mb-4'>
 									<p className='text-gray-600 mb-1'>Email</p>
-									<p className='font-semibold'>{session?.user?.email}</p>
+									<p className='font-semibold'>{session.user?.email}</p>
 								</div>
 								<div className='flex justify-end'>
 									<Button type='button' onClick={() => setIsEditing(true)}>
@@ -196,6 +183,4 @@ const ProfilePage = memo(function ProfilePage() {
 			</div>
 		</div>
 	);
-});
-
-export default ProfilePage;
+}

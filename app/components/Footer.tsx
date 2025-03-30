@@ -26,45 +26,18 @@ export default function Footer() {
 							<h3 className='font-medium mb-4'>Категории</h3>
 							<ul className='space-y-3 opacity-80'>
 								<li>
-									<Link href='/summer' className='hover:text-gray-300'>
-										Летняя обувь
+									<Link href='/products?category=men' className='hover:text-gray-300'>
+										Мужские
 									</Link>
 								</li>
 								<li>
-									<Link href='/summer' className='hover:text-gray-300'>
-										Летняя обувь
+									<Link href='/products?category=women' className='hover:text-gray-300'>
+										Женские
 									</Link>
 								</li>
 								<li>
-									<Link href='/summer' className='hover:text-gray-300'>
-										Летняя обувь
-									</Link>
-								</li>
-								<li>
-									<Link href='/summer' className='hover:text-gray-300'>
-										Летняя обувь
-									</Link>
-								</li>
-							</ul>
-						</div>
-
-						<div>
-							<h3 className='font-medium mb-4'>Tickets & Booking</h3>
-							<ul className='space-y-3 opacity-80'>
-								<li>
-									<Link href='/tickets' className='hover:text-gray-300'>
-										Lift Tickets
-									</Link>
-								</li>
-								<li>
-									{" "}
-									<Link href='/season-passes' className='hover:text-gray-300'>
-										Season Passes
-									</Link>
-								</li>
-								<li>
-									<Link href='/packages' className='hover:text-gray-300'>
-										Vacation Packages
+									<Link href='/products?category=children' className='hover:text-gray-300'>
+										Детские
 									</Link>
 								</li>
 							</ul>
@@ -108,7 +81,7 @@ export default function Footer() {
 
 				{/* Копирайт */}
 				<div className='mt-16 pt-8 border-t border-white/15'>
-					<p className='text-center text-sm opacity-75'>© 2024 Keda | Все права защищены</p>
+					<p className='text-center text-sm opacity-75'>© 2025 Keda | Все права защищены</p>
 				</div>
 			</div>
 		</footer>

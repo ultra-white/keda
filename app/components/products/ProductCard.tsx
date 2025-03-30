@@ -12,7 +12,19 @@ export interface Product {
 	price: number;
 	oldPrice?: number;
 	selectedSize?: number | null;
-	// Добавьте другие необходимые поля
+	image?: string;
+	model?: string;
+	brandName?: string;
+	isNew?: boolean;
+	isOnSale?: boolean;
+	brand?: {
+		name: string;
+	};
+	category?: {
+		name: string;
+	};
+	createdAt: string;
+	updatedAt: string;
 }
 
 interface ProductCardProps {

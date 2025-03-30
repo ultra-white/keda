@@ -2,22 +2,29 @@
 
 import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { Product } from "@/app/components/products/ProductCard";
 import { useCart } from "@/app/contexts/CartContext";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-// Расширяем интерфейс Product для соответствия дополнительным свойствам
-interface ExtendedProduct extends Product {
+// Создаем тип, совместимый с Product из контекста корзины
+type CartProductType = {
+	id: string;
+	name: string;
+	description?: string;
+	price: number;
+	oldPrice?: number;
+	selectedSize?: number | null;
 	image?: string;
 	brand?: { name: string };
 	brandName?: string;
 	model?: string;
 	category?: { name: string };
-}
+	createdAt?: string;
+	updatedAt?: string;
+};
 
 interface CartItemProps {
-	product: ExtendedProduct;
+	product: CartProductType;
 	quantity: number;
 }
 

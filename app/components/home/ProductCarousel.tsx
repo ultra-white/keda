@@ -85,108 +85,114 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
 	if (products.length === 0) return null;
 
 	return (
-		<div
-			className='relative h-[450px] md:h-[500px] overflow-hidden rounded-lg mt-4'
-			onMouseEnter={() => setIsHovering(true)}
-			onMouseLeave={() => setIsHovering(false)}
-			onTouchStart={handleTouchStart}
-			onTouchMove={handleTouchMove}
-			onTouchEnd={handleTouchEnd}
-		>
-			{/* Слайды */}
+		<section className='mt-0 pt-0'>
 			<div
-				className='absolute inset-0 transition-transform duration-500 ease-out'
-				style={{
-					transform: `translateX(-${currentIndex * 100}%)`,
-				}}
+				className='relative h-[450px] md:h-[500px] overflow-hidden rounded-lg mt-4'
+				onMouseEnter={() => setIsHovering(true)}
+				onMouseLeave={() => setIsHovering(false)}
+				onTouchStart={handleTouchStart}
+				onTouchMove={handleTouchMove}
+				onTouchEnd={handleTouchEnd}
 			>
-				<div className='flex h-full' style={{ width: `${products.length * 100}%` }}>
-					{products.map((product) => (
-						<div key={product.id} className='h-full bg-gray-100' style={{ width: `${100 / products.length}%` }}>
-							<div className='h-full flex flex-col md:flex-row'>
-								{/* Изображение */}
-								<div className='flex-1 overflow-hidden flex items-center justify-center bg-white relative'>
-									{product.image && isValidUrl(product.image) && !imageErrors[product.id] ? (
-										<div className='relative w-full h-full'>
-											<Image
-												src={product.image}
-												alt={product.model}
-												fill
-												sizes='(max-width: 768px) 100vw, 50vw'
-												className='object-contain hover:scale-105 transition-transform'
-												onError={() => setImageErrors((prev) => ({ ...prev, [product.id]: true }))}
-											/>
-										</div>
-									) : (
-										<div className='w-full h-full bg-gray-200 flex items-center justify-center'>
-											<span className='text-gray-400 font-medium'>Нет изображения</span>
-										</div>
-									)}
-
-									{/* Метки в углу изображения */}
-									<div className='absolute top-2 left-2 flex flex-col gap-2'>
-										{product.isNew && <span className='bg-blue-500 text-white text-xs px-2 py-1 rounded'>Новинка</span>}
-										{product.isOnSale && (
-											<span className='bg-red-500 text-white text-xs px-2 py-1 rounded'>Скидка</span>
+				{/* Слайды */}
+				<div
+					className='absolute inset-0 transition-transform duration-500 ease-out'
+					style={{
+						transform: `translateX(-${currentIndex * 100}%)`,
+					}}
+				>
+					<div className='flex h-full' style={{ width: `${products.length * 100}%` }}>
+						{products.map((product) => (
+							<div key={product.id} className='h-full bg-gray-100' style={{ width: `${100 / products.length}%` }}>
+								<div className='h-full flex flex-col md:flex-row'>
+									{/* Изображение */}
+									<div className='flex-1 overflow-hidden flex items-center justify-center bg-white relative'>
+										{product.image && isValidUrl(product.image) && !imageErrors[product.id] ? (
+											<div className='relative w-full h-full'>
+												<Image
+													src={product.image || ""}
+													alt={product.model || "Товар"}
+													fill
+													sizes='(max-width: 768px) 100vw, 50vw'
+													className='object-contain hover:scale-105 transition-transform'
+													onError={() => setImageErrors((prev) => ({ ...prev, [product.id]: true }))}
+												/>
+											</div>
+										) : (
+											<div className='w-full h-full bg-gray-200 flex items-center justify-center'>
+												<span className='text-gray-400 font-medium'>Нет изображения</span>
+											</div>
 										)}
-									</div>
-								</div>
 
-								{/* Информация о товаре */}
-								<div className='md:w-1/3 p-6 md:p-8 flex flex-col justify-center bg-gray-100'>
-									<h2 className='text-xl md:text-2xl font-bold mb-2'>
-										{product.brandName} {product.model}
-									</h2>
-									<p className='text-gray-600 mb-4 line-clamp-3'>{product.description}</p>
-
-									<div className='flex items-center mb-6'>
-										<span className='text-xl font-bold mr-3'>{formatPrice(product.price)}</span>
-										{product.oldPrice && (
-											<span className='text-gray-500 line-through'>{formatPrice(product.oldPrice)}</span>
-										)}
+										{/* Метки в углу изображения */}
+										<div className='absolute top-2 left-2 flex flex-col gap-2'>
+											{product.isNew && (
+												<span className='bg-blue-500 text-white text-xs px-2 py-1 rounded'>Новинка</span>
+											)}
+											{product.isOnSale && (
+												<span className='bg-red-500 text-white text-xs px-2 py-1 rounded'>Скидка</span>
+											)}
+										</div>
 									</div>
 
-									<Link
-										href={`/products/${product.id}`}
-										className='inline-block bg-black text-white font-semibold px-6 py-3 mb-3 rounded-md hover:bg-gray-800 transition-colors'
-									>
-										Подробнее
-									</Link>
+									{/* Информация о товаре */}
+									<div className='md:w-1/3 p-6 md:p-8 flex flex-col justify-center bg-gray-100'>
+										<h2 className='text-xl md:text-2xl font-bold mb-2'>
+											{product.brandName} {product.model}
+										</h2>
+										<p className='text-gray-600 mb-4 line-clamp-3'>{product.description}</p>
+
+										<div className='flex items-center mb-6'>
+											<span className='text-xl font-bold mr-3'>{formatPrice(product.price)}</span>
+											{product.oldPrice && (
+												<span className='text-gray-500 line-through'>{formatPrice(product.oldPrice)}</span>
+											)}
+										</div>
+
+										<Link
+											href={`/products/${product.id}`}
+											className='inline-block bg-black text-white font-semibold px-6 py-3 mb-3 rounded-md hover:bg-gray-800 transition-colors'
+										>
+											Подробнее
+										</Link>
+									</div>
 								</div>
 							</div>
-						</div>
+						))}
+					</div>
+				</div>
+
+				{/* Стрелки навигации */}
+				<button
+					onClick={goToPrev}
+					className='absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 opacity-70 p-2 rounded-full cursor-pointer shadow-md transition-all z-10'
+					aria-label='Предыдущий слайд'
+				>
+					<ChevronLeft className='h-6 w-6 text-black' />
+				</button>
+
+				<button
+					onClick={goToNext}
+					className='absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 opacity-70 p-2 rounded-full cursor-pointer shadow-md transition-all z-10'
+					aria-label='Следующий слайд'
+				>
+					<ChevronRight className='h-6 w-6 text-black' />
+				</button>
+
+				{/* Точки индикатора */}
+				<div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10'>
+					{products.map((_, index) => (
+						<button
+							key={index}
+							onClick={() => goToSlide(index)}
+							className={`h-2 w-2 rounded-full transition-all ${
+								currentIndex === index ? "bg-black w-4" : "bg-gray-400"
+							}`}
+							aria-label={`Перейти к слайду ${index + 1}`}
+						/>
 					))}
 				</div>
 			</div>
-
-			{/* Стрелки навигации */}
-			<button
-				onClick={goToPrev}
-				className='absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 opacity-70 p-2 rounded-full cursor-pointer shadow-md transition-all z-10'
-				aria-label='Предыдущий слайд'
-			>
-				<ChevronLeft className='h-6 w-6 text-black' />
-			</button>
-
-			<button
-				onClick={goToNext}
-				className='absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-50 opacity-70 p-2 rounded-full cursor-pointer shadow-md transition-all z-10'
-				aria-label='Следующий слайд'
-			>
-				<ChevronRight className='h-6 w-6 text-black' />
-			</button>
-
-			{/* Точки индикатора */}
-			<div className='absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10'>
-				{products.map((_, index) => (
-					<button
-						key={index}
-						onClick={() => goToSlide(index)}
-						className={`h-2 w-2 rounded-full transition-all ${currentIndex === index ? "bg-black w-4" : "bg-gray-400"}`}
-						aria-label={`Перейти к слайду ${index + 1}`}
-					/>
-				))}
-			</div>
-		</div>
+		</section>
 	);
 }
