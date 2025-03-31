@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import { Youtube } from "lucide-react";
 
 export default function Footer() {
 	return (
@@ -62,15 +62,6 @@ export default function Footer() {
 						<div>
 							<h3 className='font-medium mb-4'>Соц. сети</h3>
 							<div className='flex space-x-4 opacity-80'>
-								<Link href='#' className='hover:text-gray-300'>
-									<Facebook className='w-5 h-5' />
-								</Link>
-								<Link href='#' className='hover:text-gray-300'>
-									<Instagram className='w-5 h-5' />
-								</Link>
-								<Link href='#' className='hover:text-gray-300'>
-									<Twitter className='w-5 h-5' />
-								</Link>
 								<Link href='#' className='hover:text-gray-300'>
 									<Youtube className='w-5 h-5' />
 								</Link>
