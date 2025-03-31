@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import Button from "@/app/components/shared/Button";
 import Input from "@/app/components/shared/Input";
 import Image from "next/image";
-import { ShoppingBag, Search, Edit2, Trash2 } from "lucide-react";
+import { ShoppingBag, Edit2, Trash2 } from "lucide-react";
 import FilterSortPanel from "@/app/components/admin/FilterSortPanel";
 import { sortItems, parseSortString, generateSortOptions } from "@/app/lib/admin/sortUtils";
 
@@ -318,13 +318,6 @@ export default function ProductsPage() {
 		setCategoryId("");
 		setImageUrl("");
 		setFormError(null);
-	};
-
-	// Сброс фильтров
-	const resetFilters = () => {
-		setSearchTerm("");
-		setCategoryFilter("");
-		setSortOrder("");
 	};
 
 	// Проверка является ли строка корректным URL

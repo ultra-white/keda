@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import Button from "@/app/components/shared/Button";
 import Input from "@/app/components/shared/Input";
-import { BookOpen, Edit2, Trash2, Search } from "lucide-react";
+import { BookOpen, Edit2, Trash2 } from "lucide-react";
 import FilterSortPanel from "@/app/components/admin/FilterSortPanel";
 import { sortItems, parseSortString, generateSortOptions } from "@/app/lib/admin/sortUtils";
 
